@@ -1,6 +1,6 @@
 ;;; solmode.el --- Major Emacs mode for ethereum solidity
 ;;; Commentary:
-;;  Followed the Emacs mode tutorial to make it
+;;  As always for all Emacs modes:
 ;;  http://www.emacswiki.org/emacs/ModeTutorial
 ;;; Code:
 
@@ -16,22 +16,121 @@
 (add-to-list 'auto-mode-alist '("\\.sol\\'" . solidity-mode))
 
 (defconst solidity-keywords
-  '("implof" "defimplof" "fn" "module" "signature" "import" "for" "in"
-    "if" "else" "elif" "return")
+  '("break"
+    "case"
+    "const"
+    "continue"
+    "contract"
+    "default"
+    "delete"
+    "do"
+    "else"
+    "for"
+    "function"
+    "if"
+    "in"
+    "mapping"
+    "new"
+    "private"
+    "public"
+    "return"
+    "returns"
+    "struct"
+    "switch"
+    "this"
+    "var"
+    "while"
+    )
   "Keywords of the solidity language.")
 
 (defconst solidity-constants
-  '("true" "false" "nil")
+  '("true" "false" "null")
   "Constants in the solidity language.")
 
 (defconst solidity-builtin-types
-  '("i8" "u8"
-    "i16" "u16"
-    "i32" "u32"
-    "i64" "u64"
-    "f32" "f64"
-    "string" "string8"
-    "bool")
+  '("address" "bool"
+    "hash" "hash8" "hash16" "hash24" "hash32" "hash40" "hash48" "hash56"
+    "hash64" "hash72" "hash80" "hash88" "hash96" "hash104" "hash112" "hash120"
+    "hash128" "hash136" "hash144" "hash152" "hash160" "hash168" "hash178"
+    "hash184" "hash192" "hash200" "hash208" "hash216" "hash224" "hash224"
+    "hash232" "hash240" "hash248" "hash256"
+    "int"
+    "int8"
+    "int16"
+    "int24"
+    "int32"
+    "int40"
+    "int48"
+    "int56"
+    "int64"
+    "int72"
+    "int80"
+    "int88"
+    "int96"
+    "int104"
+    "int112"
+    "int120"
+    "int128"
+    "int136"
+    "int144"
+    "int152"
+    "int160"
+    "int168"
+    "int178"
+    "int184"
+    "int192"
+    "int200"
+    "int208"
+    "int216"
+    "int224"
+    "int232"
+    "int240"
+    "int248"
+    "int256"
+
+    "mapping"
+
+    "real"
+
+    "string"
+
+    "text"
+
+    "uint"
+    "uint8"
+    "uint16"
+    "uint24"
+    "uint32"
+    "uint40"
+    "uint48"
+    "uint56"
+    "uint64"
+    "uint72"
+    "uint80"
+    "uint88"
+    "uint96"
+    "uint104"
+    "uint112"
+    "uint120"
+    "uint128"
+    "uint136"
+    "uint144"
+    "uint152"
+    "uint160"
+    "uint168"
+    "uint178"
+    "uint184"
+    "uint192"
+    "uint200"
+    "uint208"
+    "uint216"
+    "uint224"
+    "uint232"
+    "uint240"
+    "uint248"
+    "uint256"
+
+    "ureal")
   "Built in data types of the solidity language.")
 
 (defvar solidity-identifier-regexp
@@ -54,19 +153,12 @@
 ;; http://ergoemacs.org/emacs/elisp_syntax_coloring.html
 (defconst solidity-font-lock-keywords
   (list
-   '(refu-match-data-decl (1 font-lock-keyword-face)
+   '(solidity-match-functions (1 font-lock-type-face)
+			      (2 font-lock-function-name-face))
+   '(solidity-match-contract-decl (1 font-lock-keyword-face)
                           (2 font-lock-variable-name-face))
    `(,(regexp-opt solidity-constants 'words) . font-lock-constant-face)
    `(,(regexp-opt solidity-builtin-types 'words) . font-lock-builtin-face)
-   '(solidity-match-types-after-functions 2 font-lock-type-face)
-   '(solidity-match-functions 1 font-lock-function-name-face)
-   ;; '(refu-match-module-impl-name 2 font-lock-constant-face)
-   ;; '(refu-match-module-signature-name 1 font-lock-constant-face)
-   ;; '(refu-match-variable-decl-gen (1 font-lock-variable-name-face)
-   ;;                                (3 font-lock-type-face)
-   ;;                                (4 font-lock-type-face))
-   ;; '(refu-match-variable-decl (1 font-lock-variable-name-face)
-   ;;                            (2 font-lock-type-face))
    `(,(regexp-opt solidity-keywords 'words) . font-lock-keyword-face)
    )
   "The font lock options for solidity.")
@@ -79,6 +171,15 @@
                      nil   ; do not repeat
                      ))
 
+(defun solidity-match-contract-decl (limit)
+  "Search the buffer forward until LIMIT matching contract declarations.
+
+First match should be a keyword and second an identifier."
+  (solidity-match-regexp
+   (concat
+    " *\\(contract\\) *\\(" solidity-identifier-regexp "\\)")
+   limit))
+
 
 (defun solidity-match-functions (limit)
   "Search the buffer forward until LIMIT matching function names.
@@ -86,7 +187,7 @@
 Highlight the 1st result."
   (solidity-match-regexp
    (concat
-      "function *\\(" solidity-identifier-regexp "\\)")
+    " *\\(function\\) *\\(" solidity-identifier-regexp "\\)")
    limit))
 
 
@@ -113,7 +214,18 @@ Highlight the 1st result."
   (if (bobp)            ; if at beginning of buffer
       (indent-line-to 0)
     ;else
-    (progn)))
+    (let ((not-indented t) cur-indent)
+        (when (looking-at "^[ \t]*}") ; Indent back if we are at a line with a brace
+          (save-excursion
+            (forward-line -1)
+            (setq cur-indent (- (current-indentation) tab-width))))
+        (when (looking-at "^[ \t{*")
+          (save-excursion
+            (setq cur-indent (+ (current-indentation) tab-width))))
+        (if cur-indent
+            (indent-line-to cur-indent)
+          (indent-line-to 0)) ; If we didn't see an indentation hint, then allow no indentation
+)))
 
 (defun solidity-mode ()
   "Major mode for editing solidity language buffers."
@@ -126,9 +238,9 @@ Highlight the 1st result."
   ;; register indentation functions
   (set (make-local-variable 'indent-line-function) 'solidity-indent-line)
   ;; set major mode name and run hooks
-  (setq major-mode 'refu-mode)
-  (setq mode-name "refu")
-  (run-hooks 'refu-mode-hook))
+  (setq major-mode 'solidity-mode)
+  (setq mode-name "solidity")
+  (run-hooks 'solidity-mode-hook))
 
 (provide 'solidity-mode)
 ;;; solidity-mode ends here
