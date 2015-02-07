@@ -1,0 +1,15 @@
+#+TITLE: Emacs Solidity Mode
+#+AUTHOR: Lefteris Karapetsas
+
+A simple language mode for the Solidity language. It is a constant work in progress as the
+ language itself also progresses. For information about Solidity check the [[https://github.com/ethereum/wiki/wiki/Solidity-Tutorial][Tutorial]] and the [[https://github.com/ethereum/wiki/wiki/Solidity-Features][Features]] 
+wiki pages.
+
+
+* Installation
+Simply add the the file to your load path and make sure it's loaded. It automatically adds itself as the major mode of choice for
+any file saved as =.sol=.
+
+* Features
+At the moment the only features offered by this mode is syntax highlighting and basic indentation. More features are planned, which would 
+interface with the solidity libraries.
