@@ -40,11 +40,16 @@
     "this"
     "var"
     "while"
+    "constant"
     )
   "Keywords of the solidity language.")
 
 (defconst solidity-constants
-  '("true" "false" "null")
+  '("true" "false"
+    "wei"
+    "szabo"
+    "finney"
+    "ether")
   "Constants in the solidity language.")
 
 (defconst solidity-builtin-types
@@ -89,11 +94,8 @@
     "int256"
 
     "mapping"
-
     "real"
-
     "string"
-
     "text"
 
     "uint"
@@ -130,6 +132,10 @@
     "uint248"
     "uint256"
 
+    "msg"
+    "block"
+    "tx"
+
     "ureal")
   "Built in data types of the solidity language.")
 
@@ -154,13 +160,14 @@
 (defconst solidity-font-lock-keywords
   (list
    '(solidity-match-functions (1 font-lock-type-face)
-			      (2 font-lock-function-name-face))
+                              (2 font-lock-function-name-face))
    '(solidity-match-contract-decl (1 font-lock-keyword-face)
-                          (2 font-lock-variable-name-face))
+                                  (2 font-lock-variable-name-face))
+   '(solidity-match-variable-decls (1 font-lock-keyword-face)
+                                   (2 font-lock-variable-name-face))
    `(,(regexp-opt solidity-constants 'words) . font-lock-constant-face)
    `(,(regexp-opt solidity-builtin-types 'words) . font-lock-builtin-face)
-   `(,(regexp-opt solidity-keywords 'words) . font-lock-keyword-face)
-   )
+   `(,(regexp-opt solidity-keywords 'words) . font-lock-keyword-face))
   "The font lock options for solidity.")
 
 (defun solidity-match-regexp (re limit)
@@ -188,6 +195,15 @@ Highlight the 1st result."
   (solidity-match-regexp
    (concat
     " *\\(function\\) *\\(" solidity-identifier-regexp "\\)")
+   limit))
+
+(defun solidity-match-variable-decls (limit)
+  "Search the buffer forward until LIMIT matching variable declarations.
+
+Highlight the 1st result."
+  (solidity-match-regexp
+   (concat
+    " *\\(" (regexp-opt solidity-builtin-types) "\\) *\\(" solidity-identifier-regexp "\\)")
    limit))
 
 ;; solidity syntax table
