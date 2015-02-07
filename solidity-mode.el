@@ -3,7 +3,7 @@
 ;;  As always for all Emacs modes:
 ;;  http://www.emacswiki.org/emacs/ModeTutorial
 ;;; Code:
-
+(require 'cc-mode)
 (defvar solidity-mode-hook nil)
 
 (defvar solidity-mode-map
@@ -190,9 +190,6 @@ Highlight the 1st result."
     " *\\(function\\) *\\(" solidity-identifier-regexp "\\)")
    limit))
 
-
-
-
 ;; solidity syntax table
 (defvar solidity-mode-syntax-table
   (let ((st (make-syntax-table)))
@@ -207,36 +204,35 @@ Highlight the 1st result."
     st)
   "Syntax table for the solidity language.")
 
-(defun solidity-indent-line ()
-  "Indent a line as solidity code."
-  (interactive)
-  (beginning-of-line) ()
-  (if (bobp)            ; if at beginning of buffer
-      (indent-line-to 0)
-    ;else
-    (let ((not-indented t) cur-indent)
-        (when (looking-at "^[ \t]*}") ; Indent back if we are at a line with a brace
-          (save-excursion
-            (forward-line -1)
-            (setq cur-indent (- (current-indentation) tab-width))))
-        (when (looking-at "^[ \t{*")
-          (save-excursion
-            (setq cur-indent (+ (current-indentation) tab-width))))
-        (if cur-indent
-            (indent-line-to cur-indent)
-          (indent-line-to 0)) ; If we didn't see an indentation hint, then allow no indentation
-)))
-
-(defun solidity-mode ()
+;; (defun solidity-mode ()
+(define-derived-mode solidity-mode c-mode "solidity"
   "Major mode for editing solidity language buffers."
-  (interactive)
-  (kill-all-local-variables)
   (set-syntax-table solidity-mode-syntax-table)
   (use-local-map solidity-mode-map)
   ;; specify syntax highlighting
   (set (make-local-variable 'font-lock-defaults) '(solidity-font-lock-keywords))
-  ;; register indentation functions
-  (set (make-local-variable 'indent-line-function) 'solidity-indent-line)
+  ;; register indentation functions, basically the c-mode ones
+  (make-local-variable 'comment-start)
+  (make-local-variable 'comment-end)
+  (make-local-variable 'comment-start-skip)
+
+  (make-local-variable 'paragraph-start)
+  (make-local-variable 'paragraph-separate)
+  (make-local-variable 'paragraph-ignore-fill-prefix)
+  (make-local-variable 'adaptive-fill-mode)
+  (make-local-variable 'adaptive-fill-regexp)
+  (make-local-variable 'fill-paragraph-handle-comment)
+
+  ;; now set their values
+  (set (make-local-variable 'parse-sexp-ignore-comments) t)
+  (set (make-local-variable 'indent-line-function) 'c-indent-line)
+  (set (make-local-variable 'indent-region-function) 'c-indent-region)
+  (set (make-local-variable 'normal-auto-fill-function) 'c-do-auto-fill)
+  (set (make-local-variable 'comment-multi-line) t)
+  (set (make-local-variable 'comment-line-break-function)
+       'c-indent-new-comment-line)
+
+
   ;; set major mode name and run hooks
   (setq major-mode 'solidity-mode)
   (setq mode-name "solidity")
