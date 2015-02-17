@@ -1,8 +1,33 @@
-;;; solidity-mode.el --- Major Emacs mode for ethereum's solidity language
+;;; solidity-mode.el --- Major mode for ethereum's solidity language
+
+;; Copyright (C) 2015  Lefteris Karapetsas
+
+;; Author: Lefteris Karapetsas  <lefteris@refu.co>
+;; Keywords: languages
+
+;; This program is free software; you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
+
+;; This program is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+
+;; You should have received a copy of the GNU General Public License
+;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
 ;;; Commentary:
-;;  As always for all Emacs modes:
-;;  http://www.emacswiki.org/emacs/ModeTutorial
+
+;; Solidity is a high-level language whose syntax is similar to that
+;; of Javascript and it is designed to compile to code for the
+;; Ethereum Virtual Machine.
+
+;; This package provides a major mode for writing Solidity code.
+
 ;;; Code:
+
 (require 'cc-mode)
 (defvar solidity-mode-hook nil)
 
@@ -220,13 +245,12 @@ Highlight the 1st result."
     st)
   "Syntax table for the solidity language.")
 
-;; (defun solidity-mode ()
+;;;###autoload
 (define-derived-mode solidity-mode c-mode "solidity"
   "Major mode for editing solidity language buffers."
   (set-syntax-table solidity-mode-syntax-table)
-  (use-local-map solidity-mode-map)
   ;; specify syntax highlighting
-  (set (make-local-variable 'font-lock-defaults) '(solidity-font-lock-keywords))
+  (setq font-lock-defaults '(solidity-font-lock-keywords))
   ;; register indentation functions, basically the c-mode ones
   (make-local-variable 'comment-start)
   (make-local-variable 'comment-end)
@@ -246,13 +270,7 @@ Highlight the 1st result."
   (set (make-local-variable 'normal-auto-fill-function) 'c-do-auto-fill)
   (set (make-local-variable 'comment-multi-line) t)
   (set (make-local-variable 'comment-line-break-function)
-       'c-indent-new-comment-line)
-
-
-  ;; set major mode name and run hooks
-  (setq major-mode 'solidity-mode)
-  (setq mode-name "solidity")
-  (run-hooks 'solidity-mode-hook))
+       'c-indent-new-comment-line))
 
 (provide 'solidity-mode)
 ;;; solidity-mode ends here
