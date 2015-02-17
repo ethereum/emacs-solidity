@@ -1,4 +1,4 @@
-;;; solmode.el --- Major Emacs mode for ethereum solidity
+;;; solidity-mode.el --- Major Emacs mode for ethereum's solidity language
 ;;; Commentary:
 ;;  As always for all Emacs modes:
 ;;  http://www.emacswiki.org/emacs/ModeTutorial
