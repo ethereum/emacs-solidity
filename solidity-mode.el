@@ -43,8 +43,8 @@
   "Callback hook to execute whenever a solidity file is loaded."
   :group 'solidity)
 
-(defcustom solidity-solc-path "/home/lefteris/ew/cpp-ethereum/build/solc/solc"
-  "A list of directories to ignore for file searching."
+(defcustom solidity-solc-path "/usr/bin/solc"
+  "Path to the solc binary."
   :group 'solidity
   :type 'string
   :package-version '(solidity . "0.1.1"))
@@ -294,7 +294,7 @@ Highlight the 1st result."
 ;;; --- Interface with flycheck if existing ---
 (eval-after-load 'flycheck
   (progn
-    ;; add a solidity mode hook to set the executable of solc for flycheck
+    ;; add a solidity mode callback to set the executable of solc for flycheck
     (add-hook 'solidity-mode-hook
        (lambda () (setq flycheck-solidity-checker-executable solidity-solc-path)))
 
