@@ -4,6 +4,7 @@
 
 ;; Author: Lefteris Karapetsas  <lefteris@refu.co>
 ;; Keywords: languages
+;; Version: 0.1.1
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -29,7 +30,24 @@
 ;;; Code:
 
 (require 'cc-mode)
-(defvar solidity-mode-hook nil)
+
+
+;;; --- Customizable variables ---
+(defgroup solidity nil
+  "Major mode for ethereum's solidity language"
+  :group 'languages ;; Emacs -> Programming -> Languages
+  :prefix "solidity-"
+  :link '(url-link :tag "Github" "https://github.com/ethereum/emacs-solidity"))
+
+(defcustom solidity-mode-hook nil
+  "Callback hook to execute whenever a solidity file is loaded."
+  :group 'solidity)
+
+(defcustom solidity-solc-path "/home/lefteris/ew/cpp-ethereum/build/solc/solc"
+  "A list of directories to ignore for file searching."
+  :group 'solidity
+  :type 'string
+  :package-version '(solidity . "0.1.1"))
 
 (defvar solidity-mode-map
   (let ((map (make-keymap)))
@@ -270,7 +288,31 @@ Highlight the 1st result."
   (set (make-local-variable 'normal-auto-fill-function) 'c-do-auto-fill)
   (set (make-local-variable 'comment-multi-line) t)
   (set (make-local-variable 'comment-line-break-function)
-       'c-indent-new-comment-line))
+       'c-indent-new-comment-line)
+  (run-hooks 'solidity-mode-hook))
+
+;;; --- Interface with flycheck if existing ---
+(eval-after-load 'flycheck
+  (progn
+    ;; add a solidity mode hook to set the executable of solc for flycheck
+    (add-hook 'solidity-mode-hook
+       (lambda () (setq flycheck-solidity-checker-executable solidity-solc-path)))
+
+    ;; define solidity's flycheck syntax checker
+    (flycheck-define-checker solidity-checker
+      "A Solidity syntax checker using the solc compiler"
+      :command ("solc" source)
+      :error-patterns
+      ((error line-start (file-name) ":" line ":" column ":"
+	      " Parser error" ":" (message) line-end)
+       (warning line-start (file-name) ":" line ":" column ":"
+		(or "W" "R") ":" (message) line-end)
+       (info line-start (file-name) ":" line ":" column ":"
+	     "C:" (message) line-end))
+      :modes solidity-mode
+      :predicate (lambda () (eq major-mode 'solidity-mode)))
+
+    (add-to-list 'flycheck-checkers 'solidity-checker)))
 
 (provide 'solidity-mode)
 ;;; solidity-mode ends here
