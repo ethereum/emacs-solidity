@@ -304,15 +304,14 @@ Highlight the 1st result."
       :command ("solc" source)
       :error-patterns
       ((error line-start (file-name) ":" line ":" column ":"
-	      " Parser error" ":" (message) line-end)
+              (or " Parser error" " Type error") ":" (message) line-end)
+       ;; warning and info not used at the moment. Just leaving them here for reference
        (warning line-start (file-name) ":" line ":" column ":"
 		(or "W" "R") ":" (message) line-end)
        (info line-start (file-name) ":" line ":" column ":"
 	     "C:" (message) line-end))
       :modes solidity-mode
-      :predicate (lambda () (eq major-mode 'solidity-mode)))
-
-    (add-to-list 'flycheck-checkers 'solidity-checker)))
+      :predicate (lambda () (eq major-mode 'solidity-mode)))))
 
 (provide 'solidity-mode)
 ;;; solidity-mode ends here
