@@ -7,9 +7,40 @@ wiki pages.
 
 
 * Installation
-Simply add the the file to your load path and make sure it's loaded. It automatically adds itself as the major mode of choice for
-any file saved as =.sol=.
+You can simply load the file in your emacs but the recommended way to install it is either via el-get or MELPA.
+
+** El-get
+If you don't know how to use el-get you can find more information on its [[https://github.com/dimitri/el-get][webpage]]. You can obtain it by using
+=el-get-install solidity-mode=.
+
+** Melpa
+You can also obtain solidity-mode from [[http://melpa.org/#/][Melpa]] as can be seen [[http://melpa.org/#/solidity-mode][here]].
+
+* Configuration
+By default solidity-mode associates itself with any files ending in =.sol=.
+
+If using =el-get= then you should have a specific package initializing lisp file. If not then you can put these
+anywhere in your =init.el=.
+
+** Provide path to solc binary
+At the moment of writing this guide ethereum is not yet released so everything is built from source and not
+installed on a user's system. You will probably have to provide the path to the solc binary executable.
+Here is an example:
+#+BEGIN_SRC emacs-lisp
+(setq solidity-solc-path "/home/lefteris/ew/cpp-ethereum/build/solc/solc")
+#+END_SRC
+
+** [Optional] Flycheck interface
+Solidity mode can also interface with [[https://github.com/flycheck/flycheck][flycheck]] if you have it. Simply add =solidity-checker= to the list
+of active flycheck checkers.
+#+BEGIN_SRC emacs-lisp
+(require 'flycheck)
+(require 'solidity-mode)
+(add-to-list 'flycheck-checkers 'solidity-checker)
+#+END_SRC
 
 * Features
-At the moment the only features offered by this mode is syntax highlighting and basic indentation. More features are planned, which would 
-interface with the solidity libraries.
++ Syntax highlighting
++ Indentation
++ On the fly syntax checking with flycheck
+More features are planned, which would interface with the solidity libraries.
