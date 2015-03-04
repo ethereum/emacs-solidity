@@ -291,27 +291,25 @@ Highlight the 1st result."
   (run-hooks 'solidity-mode-hook))
 
 ;;; --- Interface with flycheck if existing ---
-(eval-after-load 'flycheck
-  (progn
-	(require 'flycheck)
-    ;; add a solidity mode callback to set the executable of solc for flycheck
-    (add-hook 'solidity-mode-hook
-       (lambda () (setq flycheck-solidity-checker-executable solidity-solc-path)))
+(when (require 'flycheck nil 'noerror)
+  ;; add a solidity mode callback to set the executable of solc for flycheck
+  (add-hook 'solidity-mode-hook
+            (lambda () (setq flycheck-solidity-checker-executable solidity-solc-path)))
 
-    ;; define solidity's flycheck syntax checker
-    (flycheck-define-checker solidity-checker
-      "A Solidity syntax checker using the solc compiler"
-      :command ("solc" source)
-      :error-patterns
-      ((error line-start (file-name) ":" line ":" column ":"
-              (or " Parser error" " Type error" " Declaration error") ":" (message) line-end)
-       ;; warning and info not used at the moment. Just leaving them here for reference
-       (warning line-start (file-name) ":" line ":" column ":"
-		(or "W" "R") ":" (message) line-end)
-       (info line-start (file-name) ":" line ":" column ":"
-	     "C:" (message) line-end))
-      :modes solidity-mode
-      :predicate (lambda () (eq major-mode 'solidity-mode)))))
+  ;; define solidity's flycheck syntax checker
+  (flycheck-define-checker solidity-checker
+    "A Solidity syntax checker using the solc compiler"
+    :command ("solc" source)
+    :error-patterns
+    ((error line-start (file-name) ":" line ":" column ":"
+            (or " Parser error" " Type error" " Declaration error") ":" (message) line-end)
+     ;; warning and info not used at the moment. Just leaving them here for reference
+     (warning line-start (file-name) ":" line ":" column ":"
+              (or "W" "R") ":" (message) line-end)
+     (info line-start (file-name) ":" line ":" column ":"
+           "C:" (message) line-end))
+    :modes solidity-mode
+    :predicate (lambda () (eq major-mode 'solidity-mode))))
 
 (provide 'solidity-mode)
 ;;; solidity-mode ends here
