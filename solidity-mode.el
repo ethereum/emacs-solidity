@@ -263,7 +263,6 @@ Highlight the 1st result."
     st)
   "Syntax table for the solidity language.")
 
-;;;###autoload
 (define-derived-mode solidity-mode c-mode "solidity"
   "Major mode for editing solidity language buffers."
   (set-syntax-table solidity-mode-syntax-table)
@@ -294,6 +293,7 @@ Highlight the 1st result."
 ;;; --- Interface with flycheck if existing ---
 (eval-after-load 'flycheck
   (progn
+	(require 'flycheck)
     ;; add a solidity mode callback to set the executable of solc for flycheck
     (add-hook 'solidity-mode-hook
        (lambda () (setq flycheck-solidity-checker-executable solidity-solc-path)))
