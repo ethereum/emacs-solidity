@@ -91,6 +91,7 @@
     "var"
     "while"
     "enum"
+    "throw"
     )
   "Keywords of the solidity language.")
 
@@ -110,7 +111,8 @@
   "Constants in the solidity language.")
 
 (defconst solidity-builtin-types
-  '("bool"
+  '("address"
+    "bool"
     "bytes"
     "bytes0"
     "bytes1"
@@ -247,7 +249,11 @@
   (list
    '(solidity-match-functions (1 font-lock-type-face)
                               (2 font-lock-function-name-face))
+   '(solidity-match-mappings (1 font-lock-type-face)
+                              (2 font-lock-function-name-face))
    '(solidity-match-contract-decl (1 font-lock-keyword-face)
+                                  (2 font-lock-variable-name-face))
+   '(solidity-match-struct-decl (1 font-lock-keyword-face)
                                   (2 font-lock-variable-name-face))
    '(solidity-match-variable-decls (1 font-lock-keyword-face)
                                    (2 font-lock-variable-name-face))
@@ -273,6 +279,14 @@ First match should be a keyword and second an identifier."
     " *\\(contract\\) *\\(" solidity-identifier-regexp "\\)")
    limit))
 
+(defun solidity-match-struct-decl (limit)
+  "Search the buffer forward until LIMIT matching struct declarations.
+
+First match should be a keyword and second an identifier."
+  (solidity-match-regexp
+   (concat
+    " *\\(struct\\) *\\(" solidity-identifier-regexp "\\)")
+   limit))
 
 (defun solidity-match-functions (limit)
   "Search the buffer forward until LIMIT matching function names.
@@ -281,6 +295,15 @@ Highlight the 1st result."
   (solidity-match-regexp
    (concat
     " *\\(function\\) *\\(" solidity-identifier-regexp "\\)")
+   limit))
+
+(defun solidity-match-mappings (limit)
+  "Search the buffer forward until LIMIT matching solidity mappings.
+
+Highlight the 1st result."
+  (solidity-match-regexp
+   (concat
+    " *\\(mapping\\) *(.*) *\\(" solidity-identifier-regexp "\\)")
    limit))
 
 (defun solidity-match-variable-decls (limit)
