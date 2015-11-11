@@ -253,7 +253,11 @@
                               (2 font-lock-function-name-face))
    '(solidity-match-contract-decl (1 font-lock-keyword-face)
                                   (2 font-lock-variable-name-face))
+   '(solidity-match-modifier-decl (1 font-lock-keyword-face)
+                                (2 font-lock-variable-name-face))
    '(solidity-match-struct-decl (1 font-lock-keyword-face)
+                                (2 font-lock-variable-name-face))
+   '(solidity-match-event-decl (1 font-lock-keyword-face)
                                   (2 font-lock-variable-name-face))
    '(solidity-match-variable-decls (1 font-lock-keyword-face)
                                    (2 font-lock-variable-name-face))
@@ -295,6 +299,24 @@ Highlight the 1st result."
   (solidity-match-regexp
    (concat
     " *\\(function\\) *\\(" solidity-identifier-regexp "\\)")
+   limit))
+
+(defun solidity-match-event-decl (limit)
+  "Search the buffer forward until LIMIT matching function names.
+
+Highlight the 1st result."
+  (solidity-match-regexp
+   (concat
+    " *\\(event\\) *\\(" solidity-identifier-regexp "\\)")
+   limit))
+
+(defun solidity-match-modifier-decl (limit)
+  "Search the buffer forward until LIMIT matching function names.
+
+Highlight the 1st result."
+  (solidity-match-regexp
+   (concat
+    " *\\(modifier\\) *\\(" solidity-identifier-regexp "\\)")
    limit))
 
 (defun solidity-match-mappings (limit)
