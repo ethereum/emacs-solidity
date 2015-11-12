@@ -400,4 +400,4 @@ Highlight the 1st result."
     :predicate (lambda () (eq major-mode 'solidity-mode))))
 
 (provide 'solidity-mode)
-;;; solidity-mode ends here
+;;; solidity-mode.el ends here
