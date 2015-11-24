@@ -247,6 +247,7 @@
 ;; http://ergoemacs.org/emacs/elisp_syntax_coloring.html
 (defconst solidity-font-lock-keywords
   (list
+   `(,(regexp-opt solidity-keywords 'words) . font-lock-keyword-face)
    '(solidity-match-functions (1 font-lock-type-face)
                               (2 font-lock-function-name-face))
    '(solidity-match-mappings (1 font-lock-type-face)
@@ -262,8 +263,7 @@
    '(solidity-match-variable-decls (1 font-lock-keyword-face)
                                    (2 font-lock-variable-name-face))
    `(,(regexp-opt solidity-constants 'words) . font-lock-constant-face)
-   `(,(regexp-opt solidity-builtin-types 'words) . font-lock-builtin-face)
-   `(,(regexp-opt solidity-keywords 'words) . font-lock-keyword-face))
+   `(,(regexp-opt solidity-builtin-types 'words) . font-lock-builtin-face))
   "The font lock options for solidity.")
 
 (defun solidity-match-regexp (re limit)
