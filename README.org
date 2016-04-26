@@ -29,6 +29,8 @@ set the location of the binary like below:
 (setq solidity-solc-path "/home/lefteris/ew/cpp-ethereum/build/solc/solc")
 #+END_SRC
 
+Note: This better be set before requiring solidity mode.
+
 ** [Optional] Flycheck interface
 Solidity mode can also interface with [[https://github.com/flycheck/flycheck][flycheck]] if you have it. Make sure to
 download and install the flycheck package. Then configure it to either work on
