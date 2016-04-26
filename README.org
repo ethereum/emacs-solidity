@@ -23,21 +23,17 @@ If using =el-get= then you should have a specific package initializing lisp file
 anywhere in your =init.el=.
 
 ** Provide path to solc binary
-At the moment of writing this guide ethereum is not yet released so everything is built from source and not
-installed on a user's system. You will probably have to provide the path to the solc binary executable.
-Here is an example:
+The ~solc~ binary is assumed to be located at ~/usr/bin/solc~. Wherever that is not the case you would have to manually
+set the location of the binary like below:
 #+BEGIN_SRC emacs-lisp
 (setq solidity-solc-path "/home/lefteris/ew/cpp-ethereum/build/solc/solc")
 #+END_SRC
 
 ** [Optional] Flycheck interface
-Solidity mode can also interface with [[https://github.com/flycheck/flycheck][flycheck]] if you have it. Simply add =solidity-checker= to the list
-of active flycheck checkers.
-#+BEGIN_SRC emacs-lisp
-(require 'flycheck)
-(require 'solidity-mode)
-(add-to-list 'flycheck-checkers 'solidity-checker)
-#+END_SRC
+Solidity mode can also interface with [[https://github.com/flycheck/flycheck][flycheck]] if you have it. Make sure to
+download and install the flycheck package. Then configure it to either work on
+all modes or enable it only for solidity mode.
+
 
 * Features
 + Syntax highlighting

@@ -378,26 +378,20 @@ Highlight the 1st result."
        'c-indent-new-comment-line)
   (run-hooks 'solidity-mode-hook))
 
-;;; --- Interface with flycheck if existing ---
+;;; --- interface with flycheck if existing ---
 (when (require 'flycheck nil 'noerror)
   ;; add a solidity mode callback to set the executable of solc for flycheck
-  (add-hook 'solidity-mode-hook
-            (lambda () (setq flycheck-solidity-checker-executable solidity-solc-path)))
-
   ;; define solidity's flycheck syntax checker
-  (flycheck-define-checker solidity-checker
+  (flycheck-define-checker solidity
     "A Solidity syntax checker using the solc compiler"
-    :command ("solc" source)
+    :command ("/usr/bin/solc" source-inplace)
     :error-patterns
-    ((error line-start (file-name) ":" line ":" column ":"
-            (or " Parser error" " Type error" " Declaration error") ":" (message) line-end)
-     ;; warning and info not used at the moment. Just leaving them here for reference
-     (warning line-start (file-name) ":" line ":" column ":"
-              (or "W" "R") ":" (message) line-end)
-     (info line-start (file-name) ":" line ":" column ":"
-           "C:" (message) line-end))
+    ((error line-start (file-name) ":" line ":" column ":" " Error: " (message)))
     :modes solidity-mode
-    :predicate (lambda () (eq major-mode 'solidity-mode))))
+    :predicate (lambda () (eq major-mode 'solidity-mode)))
+  (add-to-list 'flycheck-checkers 'solidity)
+  (add-hook 'solidity-mode-hook
+            (lambda () (setq flycheck-solidity-executable solidity-solc-path))))
 
 (provide 'solidity-mode)
 ;;; solidity-mode.el ends here
