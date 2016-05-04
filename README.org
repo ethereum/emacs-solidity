@@ -22,6 +22,11 @@ By default solidity-mode associates itself with any files ending in =.sol=.
 If using =el-get= then you should have a specific package initializing lisp file. If not then you can put these
 anywhere in your =init.el=.
 
+** Generic configuration
+Regardless of where you installed solidity mode from, you need to require the package:
+#+BEGIN_SRC lisp
+(require 'solidity-mode)
+#+END_SRC
 ** Provide path to solc binary
 The ~solc~ binary is assumed to be located at ~/usr/bin/solc~. Wherever that is not the case you would have to manually
 set the location of the binary like below:
@@ -35,7 +40,6 @@ Note: This better be set before requiring solidity mode.
 Solidity mode can also interface with [[https://github.com/flycheck/flycheck][flycheck]] if you have it. Make sure to
 download and install the flycheck package. Then configure it to either work on
 all modes or enable it only for solidity mode.
-
 
 * Features
 + Syntax highlighting
