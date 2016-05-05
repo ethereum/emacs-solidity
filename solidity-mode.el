@@ -55,6 +55,10 @@
     map)
   "Keymap for solidity major mode.")
 
+(defvar solidity-checker t "The solidity flycheck syntax checker.")
+(defvar solidity-mode t "The solidity major mode.")
+(defvar flycheck-solidity-executable t "The solc executable used by flycheck.")
+
 ;;;###autoload
 (add-to-list 'auto-mode-alist '("\\.sol\\'" . solidity-mode))
 
@@ -382,14 +386,14 @@ Highlight the 1st result."
 (when (require 'flycheck nil 'noerror)
   ;; add a solidity mode callback to set the executable of solc for flycheck
   ;; define solidity's flycheck syntax checker
-  (flycheck-define-checker solidity
+  (flycheck-define-checker solidity-checker
     "A Solidity syntax checker using the solc compiler"
     :command ("/usr/bin/solc" source-inplace)
     :error-patterns
     ((error line-start (file-name) ":" line ":" column ":" " Error: " (message)))
     :modes solidity-mode
     :predicate (lambda () (eq major-mode 'solidity-mode)))
-  (add-to-list 'flycheck-checkers 'solidity)
+  (add-to-list 'flycheck-checkers 'solidity-checker)
   (add-hook 'solidity-mode-hook
             (lambda () (setq flycheck-solidity-executable solidity-solc-path))))
 
