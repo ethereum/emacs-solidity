@@ -10,8 +10,7 @@ wiki pages.
 You can simply load the file in your emacs but the recommended way to install it is either via el-get or MELPA.
 
 ** El-get
-If you don't know how to use el-get you can find more information on its [[https://github.com/dimitri/el-get][webpage]]. You can obtain it by using
-=el-get-install solidity-mode=.
+If you don't know how to use el-get you can find more information on its [[https://github.com/dimitri/el-get][webpage]]. First [[https://github.com/dimitri/el-get#basic-setup][install el-get]] and then (in emacs), press =Alt+x= (this is in emacs notation written as =M-x= ) and then type =el-get-install=. This will prompt you for a package, type =solidity-mode= and hit enter, this should install all you need.
 
 ** Melpa
 You can also obtain solidity-mode from [[http://melpa.org/#/][Melpa]] as can be seen [[http://melpa.org/#/solidity-mode][here]].
@@ -27,6 +26,8 @@ Regardless of where you installed solidity mode from, you need to require the pa
 #+BEGIN_SRC lisp
 (require 'solidity-mode)
 #+END_SRC
+(append that line to your =~/.emacs= file)
+
 ** Provide path to solc binary
 The ~solc~ binary is assumed to be located at ~/usr/bin/solc~. Wherever that is not the case you would have to manually
 set the location of the binary like below:
