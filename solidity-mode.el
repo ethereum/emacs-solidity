@@ -384,6 +384,8 @@ Highlight the 1st result."
 
 ;;; --- interface with flycheck if existing ---
 (when (require 'flycheck nil 'noerror)
+  ;; add dummy source-inplace definition to avoid errors
+  (defvar source-inplace)
   ;; add a solidity mode callback to set the executable of solc for flycheck
   ;; define solidity's flycheck syntax checker
   (flycheck-define-checker solidity-checker
