@@ -355,6 +355,7 @@ Highlight the 1st result."
     st)
   "Syntax table for the solidity language.")
 
+;;;###autoload
 (define-derived-mode solidity-mode c-mode "solidity"
   "Major mode for editing solidity language buffers."
   (set-syntax-table solidity-mode-syntax-table)
