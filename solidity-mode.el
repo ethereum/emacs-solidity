@@ -384,7 +384,7 @@ Highlight the 1st result."
   (run-hooks 'solidity-mode-hook))
 
 ;;; --- interface with flycheck if existing ---
-(when (require 'flycheck nil 'noerror)
+(when (eval-when-compile (require 'flycheck nil 'noerror))
   ;; add dummy source-inplace definition to avoid errors
   (defvar source-inplace t)
   ;; add a solidity mode callback to set the executable of solc for flycheck
@@ -398,7 +398,7 @@ Highlight the 1st result."
     :predicate (lambda () (eq major-mode 'solidity-mode)))
   (add-to-list 'flycheck-checkers 'solidity-checker)
   (add-hook 'solidity-mode-hook
-            (lambda () (setq flycheck-solidity-executable solidity-solc-path))))
+            (lambda () (setq flycheck-solidity-checker-executable solidity-solc-path))))
 
 (provide 'solidity-mode)
 ;;; solidity-mode.el ends here
