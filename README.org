@@ -1,6 +1,8 @@
 #+TITLE: Emacs Solidity Mode
 #+AUTHOR: Lefteris Karapetsas
 
+[[LICENSE][file:https://img.shields.io/badge/License-GPL%20v3-blue.svg]] [[http://melpa.org/#/solidity-mode][file:http://melpa.org/packages/solidity-mode-badge.svg]]
+
 A simple language mode for the Solidity language. It is a constant work in progress as the
  language itself also progresses. For information about Solidity check the [[https://github.com/ethereum/wiki/wiki/Solidity-Tutorial][Tutorial]] and the [[https://github.com/ethereum/wiki/wiki/Solidity-Features][Features]] 
 wiki pages.
