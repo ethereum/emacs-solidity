@@ -63,6 +63,7 @@
 (add-to-list 'auto-mode-alist '("\\.sol\\'" . solidity-mode))
 
 (defun solidity-filter (condp lst)
+  "A simple version of a list filter.  Depending on CONDP filter LST."
   (delq nil
         (mapcar (lambda (x) (and (funcall condp x) x)) lst)))
 
@@ -242,12 +243,14 @@
     "uint248"
     "uint256"
 
-    "msg"
-    "block"
-    "tx"
-
     "ureal")
   "Built in data types of the solidity language.")
+
+(defconst solidity-builtin-constructs
+  '("msg"
+    "block"
+    "tx")
+  "Built in constructs of the solidity language.")
 
 (defvar solidity-identifier-regexp
   "\\([a-zA-z0-9]\\|_\\)+")
@@ -270,6 +273,8 @@
 (defconst solidity-font-lock-keywords
   (list
    `(,(regexp-opt solidity-tofontify-keywords 'words) . font-lock-keyword-face)
+   `(,(regexp-opt solidity-builtin-types 'words) . font-lock-type-face)
+   `(,(regexp-opt solidity-builtin-constructs 'words) . font-lock-builtin-face)
    '(solidity-match-functions (1 font-lock-type-face)
                               (2 font-lock-function-name-face))
    '(solidity-match-mappings (1 font-lock-type-face)
@@ -288,8 +293,7 @@
                                   (2 font-lock-variable-name-face))
    '(solidity-match-variable-decls (1 font-lock-keyword-face)
                                    (2 font-lock-variable-name-face))
-   `(,(regexp-opt solidity-constants 'words) . font-lock-constant-face)
-   `(,(regexp-opt solidity-builtin-types 'words) . font-lock-builtin-face))
+   `(,(regexp-opt solidity-constants 'words) . font-lock-constant-face))
   "The font lock options for solidity.")
 
 (defun solidity-match-regexp (re limit)
