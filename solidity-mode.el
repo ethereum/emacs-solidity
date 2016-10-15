@@ -62,8 +62,14 @@
 ;;;###autoload
 (add-to-list 'auto-mode-alist '("\\.sol\\'" . solidity-mode))
 
+(defun solidity-filter (condp lst)
+  (delq nil
+        (mapcar (lambda (x) (and (funcall condp x) x)) lst)))
+
 (defconst solidity-keywords
   '("after"
+    "as"
+    "assembly"
     "break"
     "constant"
     "anonymous"
@@ -78,12 +84,15 @@
     "for"
     "function"
     "if"
+    "import"
     "in"
     "is"
     "indexed"
+    "library"
     "mapping"
     "modifier"
     "new"
+    "pragma"
     "private"
     "public"
     "internal"
@@ -92,12 +101,21 @@
     "struct"
     "switch"
     "this"
+    "using"
     "var"
     "while"
     "enum"
     "throw"
     )
   "Keywords of the solidity language.")
+
+(defconst solidity-tofontify-keywords
+  (solidity-filter
+   (lambda (x) (not (member x '("contract"
+                                "library"))))
+   solidity-keywords)
+  "Keywords that will be fontified as they are and don't have special rules."
+  )
 
 (defconst solidity-constants
   '("true" "false"
@@ -251,11 +269,15 @@
 ;; http://ergoemacs.org/emacs/elisp_syntax_coloring.html
 (defconst solidity-font-lock-keywords
   (list
-   `(,(regexp-opt solidity-keywords 'words) . font-lock-keyword-face)
+   `(,(regexp-opt solidity-tofontify-keywords 'words) . font-lock-keyword-face)
    '(solidity-match-functions (1 font-lock-type-face)
                               (2 font-lock-function-name-face))
    '(solidity-match-mappings (1 font-lock-type-face)
-                              (2 font-lock-function-name-face))
+                             (2 font-lock-function-name-face))
+   '(solidity-match-pragma-stmt (1 font-lock-preprocessor-face)
+                                 (2 font-lock-string-face))
+   '(solidity-match-library-decl (1 font-lock-keyword-face)
+                                 (2 font-lock-variable-name-face))
    '(solidity-match-contract-decl (1 font-lock-keyword-face)
                                   (2 font-lock-variable-name-face))
    '(solidity-match-modifier-decl (1 font-lock-keyword-face)
@@ -285,6 +307,24 @@ First match should be a keyword and second an identifier."
   (solidity-match-regexp
    (concat
     " *\\(contract\\) *\\(" solidity-identifier-regexp "\\)")
+   limit))
+
+(defun solidity-match-library-decl (limit)
+  "Search the buffer forward until LIMIT matching library declarations.
+
+First match should be a keyword and second an identifier."
+  (solidity-match-regexp
+   (concat
+    " *\\(library\\) *\\(" solidity-identifier-regexp "\\)")
+   limit))
+
+(defun solidity-match-pragma-stmt (limit)
+  "Search the buffer forward until LIMIT matching pragma statements.
+
+First match should be a keyword and second an identifier."
+  (solidity-match-regexp
+   (concat
+    " *\\(pragma\\) *\\(.*\\);")
    limit))
 
 (defun solidity-match-struct-decl (limit)
