@@ -437,7 +437,8 @@ Highlight the 1st result."
     "A Solidity syntax checker using the solc compiler"
     :command ("/usr/bin/solc" source-inplace)
     :error-patterns
-    ((error line-start (file-name) ":" line ":" column ":" " Error: " (message)))
+    ((error line-start (file-name) ":" line ":" column ":" " Error: " (message))
+     (warning line-start "Error: " (message)))
     :modes solidity-mode
     :predicate (lambda () (eq major-mode 'solidity-mode)))
   (add-to-list 'flycheck-checkers 'solidity-checker)
