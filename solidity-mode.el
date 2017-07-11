@@ -438,7 +438,7 @@ Highlight the 1st result."
     :command ("/usr/bin/solc" source-inplace)
     :error-patterns
     ((error line-start (file-name) ":" line ":" column ":" " Error: " (message))
-     (warning line-start "Error: " (message)))
+     (error line-start "Error: " (message)))
     :modes solidity-mode
     :predicate (lambda () (eq major-mode 'solidity-mode)))
   (add-to-list 'flycheck-checkers 'solidity-checker)
