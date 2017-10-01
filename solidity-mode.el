@@ -97,6 +97,8 @@
     "private"
     "public"
     "internal"
+    "pure"
+    "view"
     "return"
     "returns"
     "struct"
@@ -107,6 +109,9 @@
     "while"
     "enum"
     "throw"
+    "assert"
+    "require"
+    "revert"
     "storage"
     "memory"
     )
@@ -384,7 +389,7 @@ Highlight the 1st result."
 Highlight the 1st result."
   (solidity-match-regexp
    (concat
-    " *\\(mapping\\) +(.*) *\\("(regexp-opt solidity-variable-modifier) " \\)*\\(" solidity-identifier-regexp "\\)")
+    " *\\(mapping\\) *(.*) *\\("(regexp-opt solidity-variable-modifier) " \\)*\\(" solidity-identifier-regexp "\\)")
    limit))
 
 (defun solidity-match-variable-decls (limit)
