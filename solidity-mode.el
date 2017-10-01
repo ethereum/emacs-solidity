@@ -107,6 +107,8 @@
     "while"
     "enum"
     "throw"
+    "storage"
+    "memory"
     )
   "Keywords of the solidity language.")
 
@@ -132,6 +134,15 @@
     "years"
     )
   "Constants in the solidity language.")
+
+(defconst solidity-variable-modifier
+  '("constant"
+    "public"
+    "indexed"
+    "storage"
+    "memory"
+    )
+  "Modifiers of variables in solidity.")
 
 (defconst solidity-builtin-types
   '("address"
@@ -278,7 +289,7 @@
    '(solidity-match-functions (1 font-lock-type-face)
                               (2 font-lock-function-name-face))
    '(solidity-match-mappings (1 font-lock-type-face)
-                             (2 font-lock-function-name-face))
+                             (3 font-lock-function-name-face))
    '(solidity-match-pragma-stmt (1 font-lock-preprocessor-face)
                                  (2 font-lock-string-face))
    '(solidity-match-library-decl (1 font-lock-keyword-face)
@@ -292,7 +303,7 @@
    '(solidity-match-event-decl (1 font-lock-keyword-face)
                                   (2 font-lock-variable-name-face))
    '(solidity-match-variable-decls (1 font-lock-keyword-face)
-                                   (2 font-lock-variable-name-face))
+                                   (4 font-lock-variable-name-face))
    `(,(regexp-opt solidity-constants 'words) . font-lock-constant-face))
   "The font lock options for solidity.")
 
@@ -310,7 +321,7 @@
 First match should be a keyword and second an identifier."
   (solidity-match-regexp
    (concat
-    " *\\(contract\\) *\\(" solidity-identifier-regexp "\\)")
+    " *\\(contract\\) +\\(" solidity-identifier-regexp "\\)")
    limit))
 
 (defun solidity-match-library-decl (limit)
@@ -319,7 +330,7 @@ First match should be a keyword and second an identifier."
 First match should be a keyword and second an identifier."
   (solidity-match-regexp
    (concat
-    " *\\(library\\) *\\(" solidity-identifier-regexp "\\)")
+    " *\\(library\\) +\\(" solidity-identifier-regexp "\\)")
    limit))
 
 (defun solidity-match-pragma-stmt (limit)
@@ -328,7 +339,7 @@ First match should be a keyword and second an identifier."
 First match should be a keyword and second an identifier."
   (solidity-match-regexp
    (concat
-    " *\\(pragma\\) *\\(.*\\);")
+    " *\\(pragma\\) +\\(.*\\);")
    limit))
 
 (defun solidity-match-struct-decl (limit)
@@ -337,7 +348,7 @@ First match should be a keyword and second an identifier."
 First match should be a keyword and second an identifier."
   (solidity-match-regexp
    (concat
-    " *\\(struct\\) *\\(" solidity-identifier-regexp "\\)")
+    " *\\(struct\\) +\\(" solidity-identifier-regexp "\\)")
    limit))
 
 (defun solidity-match-functions (limit)
@@ -346,7 +357,7 @@ First match should be a keyword and second an identifier."
 Highlight the 1st result."
   (solidity-match-regexp
    (concat
-    " *\\(function\\) *\\(" solidity-identifier-regexp "\\)")
+    " *\\(function\\) +\\(" solidity-identifier-regexp "\\)")
    limit))
 
 (defun solidity-match-event-decl (limit)
@@ -355,7 +366,7 @@ Highlight the 1st result."
 Highlight the 1st result."
   (solidity-match-regexp
    (concat
-    " *\\(event\\) *\\(" solidity-identifier-regexp "\\)")
+    " *\\(event\\) +\\(" solidity-identifier-regexp "\\)")
    limit))
 
 (defun solidity-match-modifier-decl (limit)
@@ -364,7 +375,7 @@ Highlight the 1st result."
 Highlight the 1st result."
   (solidity-match-regexp
    (concat
-    " *\\(modifier\\) *\\(" solidity-identifier-regexp "\\)")
+    " *\\(modifier\\) +\\(" solidity-identifier-regexp "\\)")
    limit))
 
 (defun solidity-match-mappings (limit)
@@ -373,7 +384,7 @@ Highlight the 1st result."
 Highlight the 1st result."
   (solidity-match-regexp
    (concat
-    " *\\(mapping\\) *(.*) *\\(" solidity-identifier-regexp "\\)")
+    " *\\(mapping\\) +(.*) *\\("(regexp-opt solidity-variable-modifier) " \\)*\\(" solidity-identifier-regexp "\\)")
    limit))
 
 (defun solidity-match-variable-decls (limit)
@@ -382,7 +393,7 @@ Highlight the 1st result."
 Highlight the 1st result."
   (solidity-match-regexp
    (concat
-    " *\\(" (regexp-opt solidity-builtin-types) "\\) *\\(" solidity-identifier-regexp "\\)")
+    " *\\(" (regexp-opt solidity-builtin-types) " *\\(\\[ *[0-9]*\\]\\)* *\\) " "\\("(regexp-opt solidity-variable-modifier) " \\)* *\\(" solidity-identifier-regexp "\\)")
    limit))
 
 ;; solidity syntax table
