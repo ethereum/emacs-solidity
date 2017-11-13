@@ -4,7 +4,7 @@
 
 ;; Author: Lefteris Karapetsas  <lefteris@refu.co>
 ;; Keywords: languages
-;; Version: 0.1.1
+;; Version: 0.1.2
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -48,6 +48,12 @@
   :group 'solidity
   :type 'string
   :package-version '(solidity . "0.1.1"))
+
+(defcustom solidity-solc-extra-args ""
+  "Extra arguments to add to pass to the solidity compiler."
+  :group 'solidity
+  :type 'string
+  :package-version '(solidity . "0.1.2"))
 
 (defvar solidity-mode-map
   (let ((map (make-keymap)))
@@ -460,7 +466,9 @@ Highlight the 1st result."
     :predicate (lambda () (eq major-mode 'solidity-mode)))
   (add-to-list 'flycheck-checkers 'solidity-checker)
   (add-hook 'solidity-mode-hook
-            (lambda () (setq flycheck-solidity-checker-executable solidity-solc-path))))
+            (lambda ()
+              (let ((solidity-command (concat solidity-solc-path " " solidity-solc-extra-args)))
+                (setq flycheck-solidity-checker-executable solidity-command)))))
 
 (provide 'solidity-mode)
 ;;; solidity-mode.el ends here
