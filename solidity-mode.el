@@ -1,10 +1,10 @@
 ;;; solidity-mode.el --- Major mode for ethereum's solidity language
 
-;; Copyright (C) 2015  Lefteris Karapetsas
+;; Copyright (C) 2015-2018  Lefteris Karapetsas
 
 ;; Author: Lefteris Karapetsas  <lefteris@refu.co>
 ;; Keywords: languages
-;; Version: 0.1.2
+;; Version: 0.1.3
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -444,6 +444,9 @@ Highlight the 1st result."
 
 ;;; --- interface with flycheck if existing ---
 (when (eval-when-compile (require 'flycheck nil 'noerror))
+  ;; Avoid reference to free variable warnings
+  (defvar flycheck-solidity-checker-executable)
+
   (flycheck-def-option-var flycheck-solidity-addstd-contracts nil solidity-checker
     "Whether to add standard solidity contracts.
 
