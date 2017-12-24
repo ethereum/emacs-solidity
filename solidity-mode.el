@@ -467,7 +467,7 @@ Highlight the 1st result."
   (add-to-list 'flycheck-checkers 'solidity-checker)
   (add-hook 'solidity-mode-hook
             (lambda ()
-              (let ((solidity-command (concat solidity-solc-path " " solidity-solc-extra-args)))
+              (let ((solidity-command (concat solidity-solc-path)))
                 (setq flycheck-solidity-checker-executable solidity-command)))))
 
 (provide 'solidity-mode)
