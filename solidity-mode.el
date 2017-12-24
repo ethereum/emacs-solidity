@@ -49,12 +49,6 @@
   :type 'string
   :package-version '(solidity . "0.1.1"))
 
-(defcustom solidity-solc-extra-args ""
-  "Extra arguments to add to pass to the solidity compiler."
-  :group 'solidity
-  :type 'string
-  :package-version '(solidity . "0.1.2"))
-
 (defvar solidity-mode-map
   (let ((map (make-keymap)))
     (define-key map "\C-j" 'newline-and-indent)
@@ -63,7 +57,6 @@
 
 (defvar solidity-checker t "The solidity flycheck syntax checker.")
 (defvar solidity-mode t "The solidity major mode.")
-(defvar flycheck-solidity-executable t "The solc executable used by flycheck.")
 
 ;;;###autoload
 (add-to-list 'auto-mode-alist '("\\.sol\\'" . solidity-mode))
@@ -451,13 +444,24 @@ Highlight the 1st result."
 
 ;;; --- interface with flycheck if existing ---
 (when (eval-when-compile (require 'flycheck nil 'noerror))
+  (flycheck-def-option-var flycheck-solidity-addstd-contracts nil solidity-checker
+    "Whether to add standard solidity contracts.
+
+When non-nil, enable add also standard solidity contracts via
+`--add-std'."
+    :type 'boolean
+    :safe #'booleanp
+    :package-version '(solidity-mode . "0.1.3"))
+
   ;; add dummy source-inplace definition to avoid errors
   (defvar source-inplace t)
   ;; add a solidity mode callback to set the executable of solc for flycheck
   ;; define solidity's flycheck syntax checker
   (flycheck-define-checker solidity-checker
     "A Solidity syntax checker using the solc compiler"
-    :command ("/usr/bin/solc" source-inplace)
+    :command ("solc"
+              (option-flag "--add-std" flycheck-solidity-addstd-contracts)
+              source-inplace)
     :error-patterns
     ((error line-start (file-name) ":" line ":" column ":" " Error: " (message))
      (error line-start "Error: " (message))
