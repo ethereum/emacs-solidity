@@ -505,7 +505,15 @@ we pass the directory to solium via the `--config' option."
               source-inplace)
     :error-patterns
     ((error line-start  (zero-or-more " ") line ":" column (zero-or-more " ") "error" (message))
+     (error line-start (zero-or-more not-newline) "[Fatal error]" (message))
      (warning line-start (zero-or-more " ") line ":" column (zero-or-more " ") "warning" (message)))
+    :error-filter
+    ;; Add fake line numbers if they are missing in the lint output
+    (lambda (errors)
+      (dolist (err errors)
+        (unless (flycheck-error-line err)
+          (setf (flycheck-error-line err) 1)))
+      errors)
     :modes solidity-mode
     :predicate (lambda () (eq major-mode 'solidity-mode)))
 
