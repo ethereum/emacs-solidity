@@ -67,6 +67,28 @@ emacs can already find it in your environment's ~PATH~. Even if you can call it
 from the command line it does not mean that EMACS can see it as emacs may be started
 by systemd at which point ~PATH~ is not fully populated.
 
+*** Configuring solc checker
+
+You can configure flycheck's solc invocation with the following arguments
+
+**** std contracts
+By default this is false. If you want to include the standard contracts just add the following to your emacs init file
+
+#+BEGIN_SRC emacs-lisp
+(setq flycheck-solidity-solc-addstd-contracts t)
+#+END_SRC
+
+*** Configuring solium checker
+You can configure flycheck's solium incocation with the following arguments
+
+**** solium RC file
+By default solium looks at the current directory of the file you are editing in order to find ~.soliumrc.json~. Having this
+file is required. But you can point to an external configuration file by putting the following anywhere in your emacs init file.
+
+#+BEGIN_SRC emacs-lisp
+(setq flycheck-solidity-solium-soliumrcfile "/home/path/to/common/.soliumrc.json")
+#+END_SRC
+
 * Features
 + Syntax highlighting
 + Indentation
