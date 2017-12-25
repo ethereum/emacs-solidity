@@ -30,8 +30,9 @@ Regardless of where you installed solidity mode from, you need to require the pa
 #+END_SRC
 (append that line to your =~/.emacs= file)
 
-** Provide path to solc binary
-The ~solc~ binary is assumed to be located at ~/usr/bin/solc~. Wherever that is not the case you would have to manually
+** Interface with linters
+*** Provide path to solc binary
+The ~solc~ binary is assumed to be part of the PATH. Wherever that is not the case you would have to manually
 set the location of the binary like below:
 #+BEGIN_SRC emacs-lisp
 (setq solidity-solc-path "/home/lefteris/ew/cpp-ethereum/build/solc/solc")
@@ -39,10 +40,54 @@ set the location of the binary like below:
 
 Note: This better be set before requiring solidity mode.
 
+*** Provide path to solium binary
+The ~solium~ binary is assumed to be part of the user's ~PATH~. If this is not the case
+then set its location like below:
+#+BEGIN_SRC emacs-lisp
+(setq solidity-solium-path "/home/lefteris/.npm-global/bin/solium")
+#+END_SRC
+
+
 ** [Optional] Flycheck interface
 Solidity mode can also interface with [[https://github.com/flycheck/flycheck][flycheck]] if you have it. Make sure to
 download and install the flycheck package. Then configure it to either work on
 all modes or enable it only for solidity mode.
+
+Flycheck can interface either with solc or with [[http://solium.readthedocs.io/en/latest/][solium]]. Choose the appropriate
+linter to use by providing the following in your emacs init:
+
+#+BEGIN_SRC emacs-lisp
+(setq solidity-flycheck-active-checker "solium")
+#+END_SRC
+
+If you want to use ~"solc"~ replace ~"solium"~ with it.
+
+Keep in mind that you need to provide the path to either solc or solium unless
+emacs can already find it in your environment's ~PATH~. Even if you can call it
+from the command line it does not mean that EMACS can see it as emacs may be started
+by systemd at which point ~PATH~ is not fully populated.
+
+*** Configuring solc checker
+
+You can configure flycheck's solc invocation with the following arguments
+
+**** std contracts
+By default this is false. If you want to include the standard contracts just add the following to your emacs init file
+
+#+BEGIN_SRC emacs-lisp
+(setq flycheck-solidity-solc-addstd-contracts t)
+#+END_SRC
+
+*** Configuring solium checker
+You can configure flycheck's solium incocation with the following arguments
+
+**** solium RC file
+By default solium looks at the current directory of the file you are editing in order to find ~.soliumrc.json~. Having this
+file is required. But you can point to an external configuration file by putting the following anywhere in your emacs init file.
+
+#+BEGIN_SRC emacs-lisp
+(setq flycheck-solidity-solium-soliumrcfile "/home/path/to/common/.soliumrc.json")
+#+END_SRC
 
 * Features
 + Syntax highlighting

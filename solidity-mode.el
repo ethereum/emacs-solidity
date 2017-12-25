@@ -4,7 +4,7 @@
 
 ;; Author: Lefteris Karapetsas  <lefteris@refu.co>
 ;; Keywords: languages
-;; Version: 0.1.3
+;; Version: 0.1.4
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -43,11 +43,23 @@
   "Callback hook to execute whenever a solidity file is loaded."
   :group 'solidity)
 
-(defcustom solidity-solc-path "/usr/bin/solc"
+(defcustom solidity-solc-path "solc"
   "Path to the solc binary."
   :group 'solidity
   :type 'string
   :package-version '(solidity . "0.1.1"))
+
+(defcustom solidity-solium-path "solium"
+  "Path to the solium binary."
+  :group 'solidity
+  :type 'string
+  :package-version '(solidity . "0.1.4"))
+
+(defcustom solidity-flycheck-active-checker "solc"
+  "Choice of active checker.  Either solc or solium."
+  :group 'solidity
+  :type 'string
+  :package-version '(solidity . "0.1.4"))
 
 (defvar solidity-mode-map
   (let ((map (make-keymap)))
@@ -446,8 +458,9 @@ Highlight the 1st result."
 (when (eval-when-compile (require 'flycheck nil 'noerror))
   ;; Avoid reference to free variable warnings
   (defvar flycheck-solidity-checker-executable)
+  (defvar flycheck-solium-checker-executable)
 
-  (flycheck-def-option-var flycheck-solidity-addstd-contracts nil solidity-checker
+  (flycheck-def-option-var flycheck-solidity-solc-addstd-contracts nil solidity-checker
     "Whether to add standard solidity contracts.
 
 When non-nil, enable add also standard solidity contracts via
@@ -456,6 +469,17 @@ When non-nil, enable add also standard solidity contracts via
     :safe #'booleanp
     :package-version '(solidity-mode . "0.1.3"))
 
+  (flycheck-def-option-var flycheck-solidity-solium-soliumrcfile nil solium-check
+    "The path to use for soliumrc.json
+
+The value of this variable is either a string denoting a path to the soliumrc.json
+or nil, to use the current directory.  When non-nil,
+we pass the directory to solium via the `--config' option."
+    :type '(choice (const :tag "No custom soliumrc" nil)
+		   (string :tag "Custom soliumrc file location"))
+    :safe #'stringp
+    :package-version '(solidity-mode . "0.1.4"))
+
   ;; add dummy source-inplace definition to avoid errors
   (defvar source-inplace t)
   ;; add a solidity mode callback to set the executable of solc for flycheck
@@ -463,7 +487,7 @@ When non-nil, enable add also standard solidity contracts via
   (flycheck-define-checker solidity-checker
     "A Solidity syntax checker using the solc compiler"
     :command ("solc"
-              (option-flag "--add-std" flycheck-solidity-addstd-contracts)
+              (option-flag "--add-std" flycheck-solidity-solc-addstd-contracts)
               source-inplace)
     :error-patterns
     ((error line-start (file-name) ":" line ":" column ":" " Error: " (message))
@@ -471,11 +495,44 @@ When non-nil, enable add also standard solidity contracts via
      (warning line-start (file-name) ":" line ":" column ":" " Warning: " (message)))
     :modes solidity-mode
     :predicate (lambda () (eq major-mode 'solidity-mode)))
-  (add-to-list 'flycheck-checkers 'solidity-checker)
-  (add-hook 'solidity-mode-hook
-            (lambda ()
-              (let ((solidity-command (concat solidity-solc-path)))
-                (setq flycheck-solidity-checker-executable solidity-command)))))
+
+  ;; define solium flycheck syntax checker
+  (flycheck-define-checker solium-checker
+    "A Solidity linter using solium"
+    :command ("solium"
+              (option "--config=" flycheck-solidity-solium-soliumrcfile concat)
+              "-f"
+              source-inplace)
+    :error-patterns
+    ((error line-start  (zero-or-more " ") line ":" column (zero-or-more " ") "error" (message))
+     (error line-start (zero-or-more not-newline) "[Fatal error]" (message))
+     (warning line-start (zero-or-more " ") line ":" column (zero-or-more " ") "warning" (message)))
+    :error-filter
+    ;; Add fake line numbers if they are missing in the lint output
+    (lambda (errors)
+      (dolist (err errors)
+        (unless (flycheck-error-line err)
+          (setf (flycheck-error-line err) 1)))
+      errors)
+    :modes solidity-mode
+    :predicate (lambda () (eq major-mode 'solidity-mode)))
+
+  (when (string= solidity-flycheck-active-checker "solc")
+    (if (file-executable-p solidity-solc-path)
+	(progn
+	  (add-to-list 'flycheck-checkers 'solidity-checker)
+	  (add-hook 'solidity-mode-hook
+		    (lambda ()
+		      (let ((solidity-command (concat solidity-solc-path)))
+			(setq flycheck-solidity-checker-executable solidity-command)))))
+      (error (format "Solidity Mode Configuration error. Requested solc flycheck integration but can't find solc at: %s" solidity-solc-path))))
+
+    (when (string= solidity-flycheck-active-checker "solium")
+      (if (file-executable-p solidity-solium-path)
+          (progn
+            (add-to-list 'flycheck-checkers 'solium-checker)
+			(setq flycheck-solium-checker-executable solidity-solium-path))
+	(error (format "Solidity Mode Configuration error. Requested solium flycheck integration but can't find solium at: %s" solidity-solium-path)))))
 
 (provide 'solidity-mode)
 ;;; solidity-mode.el ends here
