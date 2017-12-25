@@ -460,7 +460,7 @@ Highlight the 1st result."
   (defvar flycheck-solidity-checker-executable)
   (defvar flycheck-solium-checker-executable)
 
-  (flycheck-def-option-var flycheck-solidity-addstd-contracts nil solidity-checker
+  (flycheck-def-option-var flycheck-solidity-solc-addstd-contracts nil solidity-checker
     "Whether to add standard solidity contracts.
 
 When non-nil, enable add also standard solidity contracts via
@@ -469,6 +469,17 @@ When non-nil, enable add also standard solidity contracts via
     :safe #'booleanp
     :package-version '(solidity-mode . "0.1.3"))
 
+  (flycheck-def-option-var flycheck-solidity-solium-soliumrcfile nil solium-check
+    "The path to use for soliumrc.json
+
+The value of this variable is either a string denoting a path to the soliumrc.json
+or nil, to use the current directory.  When non-nil,
+we pass the directory to solium via the `--config' option."
+    :type '(choice (const :tag "No custom soliumrc" nil)
+		   (string :tag "Custom soliumrc file location"))
+    :safe #'stringp
+    :package-version '(solidity-mode . "0.1.4"))
+
   ;; add dummy source-inplace definition to avoid errors
   (defvar source-inplace t)
   ;; add a solidity mode callback to set the executable of solc for flycheck
@@ -476,7 +487,7 @@ When non-nil, enable add also standard solidity contracts via
   (flycheck-define-checker solidity-checker
     "A Solidity syntax checker using the solc compiler"
     :command ("solc"
-              (option-flag "--add-std" flycheck-solidity-addstd-contracts)
+              (option-flag "--add-std" flycheck-solidity-solc-addstd-contracts)
               source-inplace)
     :error-patterns
     ((error line-start (file-name) ":" line ":" column ":" " Error: " (message))
@@ -488,7 +499,10 @@ When non-nil, enable add also standard solidity contracts via
   ;; define solium flycheck syntax checker
   (flycheck-define-checker solium-checker
     "A Solidity linter using solium"
-    :command ("solium" "-f" source-inplace)
+    :command ("solium"
+              (option "--config=" flycheck-solidity-solium-soliumrcfile concat)
+              "-f"
+              source-inplace)
     :error-patterns
     ((error line-start  (zero-or-more " ") line ":" column (zero-or-more " ") "error" (message))
      (warning line-start (zero-or-more " ") line ":" column (zero-or-more " ") "warning" (message)))
