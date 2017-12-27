@@ -4,7 +4,7 @@
 
 ;; Author: Lefteris Karapetsas  <lefteris@refu.co>
 ;; Keywords: languages
-;; Version: 0.1.4
+;; Version: 0.1.5
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -55,11 +55,47 @@
   :type 'string
   :package-version '(solidity . "0.1.4"))
 
-(defcustom solidity-flycheck-active-checker "solc"
-  "Choice of active checker.  Either solc or solium."
+(defcustom solidity-flycheck-solc-checker-active nil
+  "A boolean flag denoting if solc flycheck checker should be active."
   :group 'solidity
-  :type 'string
-  :package-version '(solidity . "0.1.4"))
+  :type 'boolean
+  :safe #'booleanp
+  :package-version '(solidity . "0.1.5"))
+
+(defcustom solidity-flycheck-solium-checker-active nil
+  "A boolean flag denoting if solium flycheck checker should be active."
+  :group 'solidity
+  :type 'boolean
+  :safe #'booleanp
+  :package-version '(solidity . "0.1.5"))
+
+(defcustom solidity-flycheck-chaining-error-level 'warning
+  "The maximum error level at which chaining of checkers will happen.
+
+This means that this is the error level for which solc checker will allow
+next checkers to run.  By default this is the warning level.
+Possible values are:
+
+`info'
+    If any errors higher than info level are found in solc, then solium
+    will not run.
+
+`warning'
+    If any errors higher than warning level are found in solc, then solium
+    will not run.
+
+`error'
+    If any errors higher than error level are found in solc, then solium
+    will not run.
+ t
+    Solium will always run."
+  :group 'solidity
+  :type '(choice (const :tag "Chain after info-error level" info)
+                 (const :tag "Chain after warning-error level" warning)
+                 (const :tag "Chain after error-error level" error)
+                 (const :tag "Always chain" t))
+  :package-version '(solidity . "0.1.5")
+  :safe #'symbolp)
 
 (defvar solidity-mode-map
   (let ((map (make-keymap)))
@@ -482,19 +518,50 @@ we pass the directory to solium via the `--config' option."
 
   ;; add dummy source-inplace definition to avoid errors
   (defvar source-inplace t)
+
   ;; add a solidity mode callback to set the executable of solc for flycheck
   ;; define solidity's flycheck syntax checker
-  (flycheck-define-checker solidity-checker
-    "A Solidity syntax checker using the solc compiler"
-    :command ("solc"
-              (option-flag "--add-std" flycheck-solidity-solc-addstd-contracts)
-              source-inplace)
-    :error-patterns
-    ((error line-start (file-name) ":" line ":" column ":" " Error: " (message))
-     (error line-start "Error: " (message))
-     (warning line-start (file-name) ":" line ":" column ":" " Warning: " (message)))
-    :modes solidity-mode
-    :predicate (lambda () (eq major-mode 'solidity-mode)))
+  ;; (let ((next-checkers-val `((,solidity-flycheck-chaining-error-level . solium-checker))))
+  ;;   (flycheck-define-checker solidity-checker
+  ;;     "A Solidity syntax checker using the solc compiler"
+  ;;     :command ("solc"
+  ;;               (option-flag "--add-std" flycheck-solidity-solc-addstd-contracts)
+  ;;               source-inplace)
+  ;;     :error-patterns
+  ;;     ((error line-start (file-name) ":" line ":" column ":" " Error: " (message))
+  ;;      (error line-start "Error: " (message))
+  ;;      (warning line-start (file-name) ":" line ":" column ":" " Warning: " (message)))
+  ;;     :next-checkers next-checkers-val
+  ;;     ;; :next-checkers `((,solidity-flycheck-chaining-error-level . solium-checker))
+  ;;     :modes solidity-mode
+  ;;     :predicate (lambda () (eq major-mode 'solidity-mode))))
+
+  ;; expanded the flycheck-define-checker macro as per advice given in gitter
+  ;; https://gitter.im/flycheck/flycheck?at=5a43b3a8232e79134d98872b in order to avoid the
+  ;; next-checkers `'` introduced by the flycheck-define-checker macro
+  (progn
+    (flycheck-def-executable-var solidity-checker "solc")
+    (flycheck-define-command-checker 'solidity-checker "A Solidity syntax checker using the solc compiler" :command
+                                     '("solc"
+                                       (option-flag "--add-std" flycheck-solidity-solc-addstd-contracts)
+                                       source-inplace)
+                                     :error-patterns
+                                     '((error line-start
+                                              (file-name)
+                                              ":" line ":" column ":" " Error: "
+                                              (message))
+                                       (error line-start "Error: "
+                                              (message))
+                                       (warning line-start
+                                                (file-name)
+                                                ":" line ":" column ":" " Warning: "
+                                                (message)))
+                                     :modes 'solidity-mode :predicate
+                                     #'(lambda nil
+                                         (eq major-mode 'solidity-mode))
+                                     :next-checkers
+                                     `((,solidity-flycheck-chaining-error-level . solium-checker))
+                                     :standard-input 'nil :working-directory 'nil))
 
   ;; define solium flycheck syntax checker
   (flycheck-define-checker solium-checker
@@ -517,7 +584,16 @@ we pass the directory to solium via the `--config' option."
     :modes solidity-mode
     :predicate (lambda () (eq major-mode 'solidity-mode)))
 
-  (when (string= solidity-flycheck-active-checker "solc")
+  ;; first try to add solium to the checker's list since if we got solc
+  ;; it must come after it in the list due to it being chained after solc
+  (when solidity-flycheck-solium-checker-active
+      (if (file-executable-p solidity-solium-path)
+          (progn
+            (add-to-list 'flycheck-checkers 'solium-checker)
+			(setq flycheck-solium-checker-executable solidity-solium-path))
+        (error (format "Solidity Mode Configuration error. Requested solium flycheck integration but can't find solium at: %s" solidity-solium-path))))
+
+  (when solidity-flycheck-solc-checker-active
     (if (file-executable-p solidity-solc-path)
 	(progn
 	  (add-to-list 'flycheck-checkers 'solidity-checker)
@@ -525,14 +601,7 @@ we pass the directory to solium via the `--config' option."
 		    (lambda ()
 		      (let ((solidity-command (concat solidity-solc-path)))
 			(setq flycheck-solidity-checker-executable solidity-command)))))
-      (error (format "Solidity Mode Configuration error. Requested solc flycheck integration but can't find solc at: %s" solidity-solc-path))))
-
-    (when (string= solidity-flycheck-active-checker "solium")
-      (if (file-executable-p solidity-solium-path)
-          (progn
-            (add-to-list 'flycheck-checkers 'solium-checker)
-			(setq flycheck-solium-checker-executable solidity-solium-path))
-	(error (format "Solidity Mode Configuration error. Requested solium flycheck integration but can't find solium at: %s" solidity-solium-path)))))
+      (error (format "Solidity Mode Configuration error. Requested solc flycheck integration but can't find solc at: %s" solidity-solc-path)))))
 
 (provide 'solidity-mode)
 ;;; solidity-mode.el ends here
