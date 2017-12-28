@@ -30,6 +30,14 @@ Regardless of where you installed solidity mode from, you need to require the pa
 #+END_SRC
 (append that line to your =~/.emacs= file)
 
+** Keymap
+You can modify the default keybindings of the solidity mode keymap by adding
+a new key combination for each command you want to change. For example
+
+#+BEGIN_SRC lisp
+(define-key map (kbd "C-c C-g") 'solidity-estimate-gas-at-point)
+#+END_SRC
+
 ** Interface with linters
 *** Provide path to solc binary
 The =solc= binary is assumed to be part of the PATH. Wherever that is not the case you would have to manually
@@ -100,8 +108,16 @@ how they are chained. Its value can be either =t=, =error=, =warning= or =info= 
 of the solc checker after which solium will not run. If =t= is given solium will always run. The default is =warning=, so
 if anything over than a warning is found in solc solium will not run.
 
+* Commands
+
+** Gas estimate of function under point
+You can get an estimate of the function under the cursor, by placing the curson
+on top of the function name and typing =C-c C-g=.
+
+This will call =solidity-estimate-gas-at-point= and provide a max gas estimate,
+if possible, for the function.
 * Features
 + Syntax highlighting
 + Indentation
 + On the fly syntax checking with flycheck
-More features are planned, which would interface with the solidity libraries.
++ Gas estimation for function under point

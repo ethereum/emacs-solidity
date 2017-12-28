@@ -4,7 +4,7 @@
 
 ;; Author: Lefteris Karapetsas  <lefteris@refu.co>
 ;; Keywords: languages
-;; Version: 0.1.5
+;; Version: 0.1.6
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -98,8 +98,9 @@ Possible values are:
   :safe #'symbolp)
 
 (defvar solidity-mode-map
-  (let ((map (make-keymap)))
+  (let ((map (make-sparse-keymap)))
     (define-key map "\C-j" 'newline-and-indent)
+    (define-key map (kbd "C-c C-g") 'solidity-estimate-gas-at-point)
     map)
   "Keymap for solidity major mode.")
 
@@ -462,6 +463,63 @@ Highlight the 1st result."
     st)
   "Syntax table for the solidity language.")
 
+
+(defun solidity--re-matches (regexp string count)
+  "Get a list of all REGEXP match results in a STRING.
+
+COUNT is the parenthentical subexpression for which to return matches.
+If your provide 0 for COUNT then the entire regex match is returned."
+  (save-match-data
+    (let ((pos 0)
+          matches)
+      (while (string-match regexp string pos)
+        (push (match-string count string) matches)
+        (setq pos (match-end 0)))
+      matches)))
+
+(defun solidity--handle-gasestimate-finish (process event)
+  "Handle all events from the solc gas estimation PROCESS.
+EVENT is isgnored."
+  (when (memq (process-status process) '(signal exit))
+    (let* ((buffer (process-buffer process))
+           (funcname (process-get process 'solidity-gasestimate-for-function))
+           (filename (process-get process 'solidity-gasestimate-for-filename))
+           (output (with-current-buffer buffer (buffer-string)))
+           (matches (solidity--re-matches (format "%s(.*?):.*?\\([0-9]+\\|infinite\\)" funcname) output 1))
+           (result (car matches)))
+      (kill-buffer buffer)
+      (if result
+        (let* ((clearfilename (file-name-nondirectory filename))
+               (ctor-matches (solidity--re-matches (format "=.*?%s:%s.*?=" clearfilename funcname) output 0)))
+          (if ctor-matches
+              (message "Gas for '%s' constructor is %s" funcname (car (solidity--re-matches "construction:
+.*?=.*?\\([0-9]+\\|infinite\\)" output 1)))
+            (message "No gas estimate found for '%s'" funcname)))))))
+
+
+(defun solidity--start-gasestimate (func)
+  "Start a gas estimation subprocess for FUNC.
+
+Does not currently work for constructors."
+  (let* ((filename (buffer-file-name))
+         (command (format "%s --gas %s" solidity-solc-path filename))
+         (process-name (format "solidity-command-%s" command))
+         (process (start-process-shell-command
+                   process-name
+                   (format "*%s*" process-name)
+                   command)))
+      (set-process-query-on-exit-flag process nil)
+      (set-process-sentinel process 'solidity--handle-gasestimate-finish)
+      (process-put process 'solidity-gasestimate-for-function func)
+      (process-put process 'solidity-gasestimate-for-filename filename)))
+
+(defun solidity-estimate-gas-at-point ()
+  "Estimate gas of the function at point.
+
+Cursor must be at the function's name.  Does not currently work for constructors."
+  (interactive)
+  (solidity--start-gasestimate (thing-at-point 'word 'no-properties)))
+
 ;;;###autoload
 (define-derived-mode solidity-mode c-mode "solidity"
   "Major mode for editing solidity language buffers."
@@ -488,6 +546,10 @@ Highlight the 1st result."
   (set (make-local-variable 'comment-multi-line) t)
   (set (make-local-variable 'comment-line-break-function)
        'c-indent-new-comment-line)
+
+  ;; set keymap
+  (use-local-map solidity-mode-map)
+  ;; set hooks
   (run-hooks 'solidity-mode-hook))
 
 ;;; --- interface with flycheck if existing ---
