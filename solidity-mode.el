@@ -473,7 +473,6 @@ If your provide 0 for COUNT then the entire regex match is returned."
     (let ((pos 0)
           matches)
       (while (string-match regexp string pos)
-        (message "GOT MATCH")
         (push (match-string count string) matches)
         (setq pos (match-end 0)))
       matches)))
@@ -484,20 +483,26 @@ EVENT is isgnored."
   (when (memq (process-status process) '(signal exit))
     (let* ((buffer (process-buffer process))
            (funcname (process-get process 'solidity-gasestimate-for-function))
+           (filename (process-get process 'solidity-gasestimate-for-filename))
            (output (with-current-buffer buffer (buffer-string)))
            (matches (solidity--re-matches (format "%s(.*?):.*?\\([0-9]+\\|infinite\\)" funcname) output 1))
            (result (car matches)))
       (kill-buffer buffer)
       (if result
-          (message "Gas for '%s' is %s" funcname result)
-        (message "No gas estimate found for '%s'" funcname)))))
+        (let* ((clearfilename (file-name-nondirectory filename))
+               (ctor-matches (solidity--re-matches (format "=.*?%s:%s.*?=" clearfilename funcname) output 0)))
+          (if ctor-matches
+              (message "Gas for '%s' constructor is %s" funcname (car (solidity--re-matches "construction:
+.*?=.*?\\([0-9]+\\|infinite\\)" output 1)))
+            (message "No gas estimate found for '%s'" funcname)))))))
 
 
 (defun solidity--start-gasestimate (func)
   "Start a gas estimation subprocess for FUNC.
 
 Does not currently work for constructors."
-  (let* ((command (format "%s --gas %s" solidity-solc-path (buffer-file-name)))
+  (let* ((filename (buffer-file-name))
+         (command (format "%s --gas %s" solidity-solc-path filename))
          (process-name (format "solidity-command-%s" command))
          (process (start-process-shell-command
                    process-name
@@ -505,7 +510,8 @@ Does not currently work for constructors."
                    command)))
       (set-process-query-on-exit-flag process nil)
       (set-process-sentinel process 'solidity--handle-gasestimate-finish)
-      (process-put process 'solidity-gasestimate-for-function func)))
+      (process-put process 'solidity-gasestimate-for-function func)
+      (process-put process 'solidity-gasestimate-for-filename filename)))
 
 (defun solidity-estimate-gas-at-point ()
   "Estimate gas of the function at point.
