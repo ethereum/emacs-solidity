@@ -473,7 +473,7 @@ If your provide 0 for COUNT then the entire regex match is returned."
     (let ((pos 0)
           matches)
       (while (string-match regexp string pos)
-        (push (match-string count string) matches)
+        (push (match-string-no-properties count string) matches)
         (setq pos (match-end 0)))
       matches)))
 
@@ -488,13 +488,16 @@ EVENT is isgnored."
            (matches (solidity--re-matches (format "%s(.*?):.*?\\([0-9]+\\|infinite\\)" funcname) output 1))
            (result (car matches)))
       (kill-buffer buffer)
-      (if result
+      (if (not result)
         (let* ((clearfilename (file-name-nondirectory filename))
                (ctor-matches (solidity--re-matches (format "=.*?%s:%s.*?=" clearfilename funcname) output 0)))
           (if ctor-matches
-              (message "Gas for '%s' constructor is %s" funcname (car (solidity--re-matches "construction:
+              (message "Gas estimate for '%s' constructor is %s" funcname (car (solidity--re-matches "construction:
 .*?=.*?\\([0-9]+\\|infinite\\)" output 1)))
-            (message "No gas estimate found for '%s'" funcname)))))))
+            ;;innermost else
+            (message "No gas estimate found for '%s'" funcname)))
+        ;; outermost else
+        (message "Gas estimate for '%s' is %s" funcname result)))))
 
 
 (defun solidity--start-gasestimate (func)
@@ -508,17 +511,17 @@ Does not currently work for constructors."
                    process-name
                    (format "*%s*" process-name)
                    command)))
-      (set-process-query-on-exit-flag process nil)
-      (set-process-sentinel process 'solidity--handle-gasestimate-finish)
-      (process-put process 'solidity-gasestimate-for-function func)
-      (process-put process 'solidity-gasestimate-for-filename filename)))
+    (set-process-query-on-exit-flag process nil)
+    (set-process-sentinel process 'solidity--handle-gasestimate-finish)
+    (process-put process 'solidity-gasestimate-for-function func)
+    (process-put process 'solidity-gasestimate-for-filename filename)))
 
 (defun solidity-estimate-gas-at-point ()
   "Estimate gas of the function at point.
 
 Cursor must be at the function's name.  Does not currently work for constructors."
   (interactive)
-  (solidity--start-gasestimate (thing-at-point 'word 'no-properties)))
+  (solidity--start-gasestimate (thing-at-point 'symbol 'no-properties)))
 
 ;;;###autoload
 (define-derived-mode solidity-mode c-mode "solidity"
