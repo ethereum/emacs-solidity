@@ -2,6 +2,16 @@
 
 The changelog starts from version 0.1.4 as too much was added in each version before that.
 
+## Version 0.1.7
+
+- Allow for customization of the way that emacs inserts comments into the source file via
+
+```emacs-lisp
+(setq solidity-comment-style 'slash)
+;; or
+(setq solidity-comment-style 'star) ;; this is the default
+```
+
 ## Version 0.1.6
 
 - Add gas estimation code. User facing function is `solidity-estimate-gas-at-point`.
