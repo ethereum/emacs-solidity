@@ -4,7 +4,7 @@
 
 ;; Author: Lefteris Karapetsas  <lefteris@refu.co>
 ;; Keywords: languages
-;; Version: 0.1.6
+;; Version: 0.1.7
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -95,6 +95,25 @@ Possible values are:
                  (const :tag "Chain after error-error level" error)
                  (const :tag "Always chain" t))
   :package-version '(solidity . "0.1.5")
+  :safe #'symbolp)
+
+(defcustom solidity-comment-style 'star
+  "Denotes the style of comments to use for solidity when commenting.
+
+This option will define what kind of comments will be input into the buffer by
+commands like `comment-region'.  The default value is 'star.
+Possible values are:
+
+`star'
+    Follow the same styling as C mode does by default having all comments
+    obey the /* .. */ style.
+
+`slash'
+    All comments will start with //."
+  :group 'solidity
+  :type '(choice (const :tag "Commenting starts with /* and ends with */" star)
+                 (const :tag "Commenting starts with //" slash))
+  :package-version '(solidity . "0.1.7")
   :safe #'symbolp)
 
 (defvar solidity-mode-map
@@ -529,9 +548,13 @@ Cursor must be at the function's name.  Does not currently work for constructors
   (set-syntax-table solidity-mode-syntax-table)
   ;; specify syntax highlighting
   (setq font-lock-defaults '(solidity-font-lock-keywords))
-  ;; register indentation functions, basically the c-mode ones
-  (make-local-variable 'comment-start)
-  (make-local-variable 'comment-end)
+
+  ;; register indentation and other langue mode functions, basically the c-mode ones with some modifications
+  (let ((start-value (if (eq solidity-comment-style 'star) "/* " "// "))
+        (end-value (if (eq solidity-comment-style 'star) " */" "")))
+    (set (make-local-variable 'comment-start) start-value)
+    (set (make-local-variable 'comment-end) end-value))
+
   (make-local-variable 'comment-start-skip)
 
   (make-local-variable 'paragraph-start)
@@ -541,7 +564,7 @@ Cursor must be at the function's name.  Does not currently work for constructors
   (make-local-variable 'adaptive-fill-regexp)
   (make-local-variable 'fill-paragraph-handle-comment)
 
-  ;; now set their values
+  ;; set values for some other variables
   (set (make-local-variable 'parse-sexp-ignore-comments) t)
   (set (make-local-variable 'indent-line-function) 'c-indent-line)
   (set (make-local-variable 'indent-region-function) 'c-indent-region)
