@@ -130,3 +130,6 @@ if possible, for the function.
 + Indentation
 + On the fly syntax checking with flycheck
 + Gas estimation for function under point
+
+* Autocompletion
+For autocompletion, you can install [[https://github.com/ssmolkin1/company-solidity][company-solidity]], a [[http://company-mode.github.io/][company-mode]] back-end for Solidity. 
