@@ -94,6 +94,7 @@ Possible values are:
     "delete"
     "do"
     "else"
+    "emit"
     "event"
     "external"
     "for"
