@@ -2,6 +2,10 @@
 
 The changelog starts from version 0.1.4 as too much was added in each version before that.
 
+## Version 0.1.9
+
+- Integrated [company-solidity](https://github.com/ssmolkin1/company-solidity) into solidity-mode, providing autocompletion out of the box if the user has [company-mode](http://company-mode.github.io) installed.
+
 ## Version 0.1.8
 
 - Bugfix for [issue 8](https://github.com/ethereum/emacs-solidity/issues/8). Now if flycheck is not installed
