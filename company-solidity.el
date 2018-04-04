@@ -115,6 +115,7 @@
 ;;;###autoload
 (defun company-solidity (command &optional arg &rest ignored)
   "Autocompletion for solidity with company mode.
+
 Argument COMMAND `company-backend` functions.
 Optional argument ARG the completion target prefix.
 Optional argument IGNORED Additional arguments are ingnored."
