@@ -91,8 +91,14 @@
 (defconst company-solidity-additional-function-methods
   '("selector"))
 
-;; Completion targets taken from solidity-mode syntax-highlighting keywords lists, plus additional targets above.
+;; defvar symbols taken from solidity-mode.el to avoid reference warnings
+(defvar solidity-keywords)
+(defvar solidity-constants)
+(defvar solidity-variable-modifier)
+(defvar solidity-builtin-types)
+(defvar solidity-builtin-constructs)
 
+;; Completion targets taken from solidity-mode syntax-highlighting keywords lists, plus additional targets above.
 (defconst company-solidity-keywords
   (append
    solidity-keywords
