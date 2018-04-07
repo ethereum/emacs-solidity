@@ -117,6 +117,29 @@ how they are chained. Its value can be either =t=, =error=, =warning= or =info= 
 of the solc checker after which solium will not run. If =t= is given solium will always run. The default is =warning=, so
 if anything over than a warning is found in solc solium will not run.
 
+** [Optional] Autocompletion
+[[https://github.com/ssmolkin1/company-solidity][company-solidity]], a simple [[http://company-mode.github.io/][company-mode]] back-end for Solidity, has now been fully integrated into solidity-mode. You no longer need to install company-solidity separately from solidity-mode, nor should you do so. To take advantage of the autocompletion features, you must have the [[http://company-mode.github.io/][company-mode]] package installed. The autocompletion features will be enabled automatically if you have company-mode installed.
+
+*** What it does
+Give completion suggestions for Solidity keywords, global variables, and address methods.
+
+*** What it isn't
+Smart. The completion suggestions are *not context dependent*.
+
+*** Something to watch out for
+=company-mode= treats =.= as the end of a word, and will cut off compeletion suggestions when you type a =.=. So, when you've typed =msg= you will get =msg.sender=, =msg.value= etc. as completion suggestions. However, as soon as you type =msg.=, the suggestions will disappear.
+
+*** Local Variables
+If you want autocomplete suggestions to include local variables, in addition to Solidity keywords, add the following to your =init.el=:
+
+#+BEGIN_SRC emacs-lisp
+(add-hook 'solidity-mode-hook
+	(lambda ()
+	(set (make-local-variable 'company-backends)
+		(append '((company-solidity company-capf company-dabbrev-code))
+			company-backends))))
+#+END_SRC
+
 * Commands
 
 ** Gas estimate of function under point
@@ -127,9 +150,7 @@ This will call =solidity-estimate-gas-at-point= and provide a max gas estimate,
 if possible, for the function.
 * Features
 + Syntax highlighting
++ Autocompletion
 + Indentation
 + On the fly syntax checking with flycheck
 + Gas estimation for function under point
-
-* Autocompletion
-For autocompletion, you can install [[https://github.com/ssmolkin1/company-solidity][company-solidity]], a [[http://company-mode.github.io/][company-mode]] back-end for Solidity. 
