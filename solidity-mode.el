@@ -104,6 +104,7 @@ Possible values are:
     "in"
     "is"
     "indexed"
+    "interface"
     "library"
     "mapping"
     "modifier"
