@@ -158,24 +158,25 @@ we pass the directory to solium via the `--config' option."
 			 :modes solidity-mode
 			 :predicate (lambda () (eq major-mode 'solidity-mode)))
 
-;; first try to add solium to the checker's list since if we got solc
-;; it must come after it in the list due to it being chained after solc
-(when solidity-flycheck-solium-checker-active
-  (if (file-executable-p solidity-solium-path)
-      (progn
-	(add-to-list 'flycheck-checkers 'solium-checker)
-	(setq flycheck-solium-checker-executable solidity-solium-path))
-    (error (format "Solidity Mode Configuration error. Requested solium flycheck integration but can't find solium at: %s" solidity-solium-path))))
+;;;###autoload
+(defun solidity-flycheck-setup ()
+  "Setup Solidity support for Flycheck.
+Add `solidity' and `solium' to `flycheck-checkers'."
+  ;; first try to add solium to the checker's list since if we got solc
+  ;; it must come after it in the list due to it being chained after solc
+  (when solidity-flycheck-solium-checker-active
+    (if (funcall flycheck-executable-find solidity-solium-path)
+	(progn
+	  (add-to-list 'flycheck-checkers 'solium-checker)
+	  (setq flycheck-solium-checker-executable solidity-solium-path))
+      (error (format "Solidity Mode Configuration error. Requested solium flycheck integration but can't find solium at: %s" solidity-solium-path))))
 
-(when solidity-flycheck-solc-checker-active
-  (if (file-executable-p solidity-solc-path)
-      (progn
-	(add-to-list 'flycheck-checkers 'solidity-checker)
-	(add-hook 'solidity-mode-hook
-		  (lambda ()
-		    (let ((solidity-command (concat solidity-solc-path)))
-		      (setq flycheck-solidity-checker-executable solidity-command)))))
-    (error (format "Solidity Mode Configuration error. Requested solc flycheck integration but can't find solc at: %s" solidity-solc-path))))
+  (when solidity-flycheck-solc-checker-active
+    (if (funcall flycheck-executable-find solidity-solc-path)
+	(progn
+	  (add-to-list 'flycheck-checkers 'solidity-checker)
+	  (setq flycheck-solidity-checker-executable solidity-solc-path))
+      (error (format "Solidity Mode Configuration error. Requested solc flycheck integration but can't find solc at: %s" solidity-solc-path)))))
 
 (provide 'solidity-flycheck)
 ;;; solidity-flycheck.el ends here
