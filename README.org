@@ -83,10 +83,6 @@ To activate =solium= checker
 (setq solidity-flycheck-solium-checker-active t)
 #+END_SRC
 
-To enable flycheck integration
-#+BEGIN_SRC emacs-lisp
-(solidity-flycheck-setup)
-#+END_SRC
 
 Keep in mind that you need to provide the path to either solc or solium unless
 emacs can already find it in your environment's =PATH=. Even if you can call it
