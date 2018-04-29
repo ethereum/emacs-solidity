@@ -114,6 +114,7 @@ Possible values are:
     "memory"
     "modifier"
     "new"
+    "payable"
     "pragma"
     "private"
     "public"

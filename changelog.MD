@@ -8,7 +8,11 @@ The changelog starts from version 0.1.4 as too much was added in each version be
 
 - Fixed flycheck integration doesn't search for solc and solium in PATH.
 
-- Add `constructor` as keyword.
+- Added missing keywords:
+
+  - constructor
+
+  - payable
 
 ## Version 0.1.9
 
