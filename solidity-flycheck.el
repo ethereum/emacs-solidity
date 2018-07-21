@@ -73,15 +73,6 @@ Possible values are:
   :safe #'booleanp
   :package-version '(solidity . "0.1.5"))
 
-(flycheck-def-option-var flycheck-solidity-solc-addstd-contracts nil solidity-checker
-			 "Whether to add standard solidity contracts.
-
-When non-nil, enable add also standard solidity contracts via
-`--add-std'."
-			 :type 'boolean
-			 :safe #'booleanp
-			 :package-version '(solidity-mode . "0.1.3"))
-
 (flycheck-def-option-var flycheck-solidity-solium-soliumrcfile nil solium-check
 			 "The path to use for soliumrc.json
 
@@ -98,9 +89,7 @@ we pass the directory to solium via the `--config' option."
 ;; (let ((next-checkers-val `((,solidity-flycheck-chaining-error-level . solium-checker))))
 ;;   (flycheck-define-checker solidity-checker
 ;;     "A Solidity syntax checker using the solc compiler"
-;;     :command ("solc"
-;;               (option-flag "--add-std" flycheck-solidity-solc-addstd-contracts)
-;;               source-inplace)
+;;     :command ("solc" source-inplace)
 ;;     :error-patterns
 ;;     ((error line-start (file-name) ":" line ":" column ":" " Error: " (message))
 ;;      (error line-start "Error: " (message))
@@ -116,9 +105,7 @@ we pass the directory to solium via the `--config' option."
 (progn
   (flycheck-def-executable-var solidity-checker "solc")
   (flycheck-define-command-checker 'solidity-checker "A Solidity syntax checker using the solc compiler" :command
-				   '("solc"
-				     (option-flag "--add-std" flycheck-solidity-solc-addstd-contracts)
-				     source-inplace)
+				   '("solc" source-inplace)
 				   :error-patterns
 				   '((error line-start
 					    (file-name)
