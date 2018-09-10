@@ -84,23 +84,6 @@ we pass the directory to solium via the `--config' option."
                          :safe #'stringp
                          :package-version '(solidity-mode . "0.1.4"))
 
-;; add a solidity mode callback to set the executable of solc for flycheck
-;; define solidity's flycheck syntax checker
-;; expanded the flycheck-define-checker macro in order to eval certain args, as per advice given in gitter
-;; https://gitter.im/flycheck/flycheck?at=5a43b3a8232e79134d98872b
-(flycheck-def-executable-var solidity-checker "solc")
-(flycheck-define-command-checker 'solidity-checker
-                                 "A Solidity syntax checker using the solc compiler"
-                                 :command '("solc" source-inplace)
-                                 :error-patterns '((error line-start (file-name) ":" line ":" column ":" " Error: " (message))
-                                                   (error line-start "Error: " (message))
-                                                   (warning line-start (file-name) ":" line ":" column ":" " Warning: " (message)))
-                                 :modes 'solidity-mode
-                                 :predicate #'(lambda nil (eq major-mode 'solidity-mode))
-                                 :next-checkers `((,solidity-flycheck-chaining-error-level . solium-checker))
-                                 :standard-input 'nil
-                                 :working-directory 'nil)
-
 ;; define solium flycheck syntax checker
 (flycheck-define-checker solium-checker
                          "A Solidity linter using solium"
@@ -129,6 +112,23 @@ we pass the directory to solium via the `--config' option."
         (add-to-list 'flycheck-checkers 'solium-checker)
         (setq flycheck-solium-checker-executable solidity-solium-path))
     (error (format "Solidity Mode Configuration error. Requested solium flycheck integration but can't find solium at: %s" solidity-solium-path))))
+
+;; add a solidity mode callback to set the executable of solc for flycheck
+;; define solidity's flycheck syntax checker
+;; expanded the flycheck-define-checker macro in order to eval certain args, as per advice given in gitter
+;; https://gitter.im/flycheck/flycheck?at=5a43b3a8232e79134d98872b
+(flycheck-def-executable-var solidity-checker "solc")
+(flycheck-define-command-checker 'solidity-checker
+                                 "A Solidity syntax checker using the solc compiler"
+                                 :command '("solc" source-inplace)
+                                 :error-patterns '((error line-start (file-name) ":" line ":" column ":" " Error: " (message))
+                                                   (error line-start "Error: " (message))
+                                                   (warning line-start (file-name) ":" line ":" column ":" " Warning: " (message)))
+                                 :modes 'solidity-mode
+                                 :predicate #'(lambda nil (eq major-mode 'solidity-mode))
+                                 :next-checkers `((,solidity-flycheck-chaining-error-level . solium-checker))
+                                 :standard-input 'nil
+                                 :working-directory 'nil)
 
 (when solidity-flycheck-solc-checker-active
   (if (funcall flycheck-executable-find solidity-solc-path)
