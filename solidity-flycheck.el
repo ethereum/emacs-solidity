@@ -86,43 +86,20 @@ we pass the directory to solium via the `--config' option."
 
 ;; add a solidity mode callback to set the executable of solc for flycheck
 ;; define solidity's flycheck syntax checker
-;; (let ((next-checkers-val `((,solidity-flycheck-chaining-error-level . solium-checker))))
-;;   (flycheck-define-checker solidity-checker
-;;     "A Solidity syntax checker using the solc compiler"
-;;     :command ("solc" source-inplace)
-;;     :error-patterns
-;;     ((error line-start (file-name) ":" line ":" column ":" " Error: " (message))
-;;      (error line-start "Error: " (message))
-;;      (warning line-start (file-name) ":" line ":" column ":" " Warning: " (message)))
-;;     :next-checkers next-checkers-val
-;;     ;; :next-checkers `((,solidity-flycheck-chaining-error-level . solium-checker))
-;;     :modes solidity-mode
-;;     :predicate (lambda () (eq major-mode 'solidity-mode))))
-
-;; expanded the flycheck-define-checker macro as per advice given in gitter
-;; https://gitter.im/flycheck/flycheck?at=5a43b3a8232e79134d98872b in order to avoid the
-;; next-checkers `'` introduced by the flycheck-define-checker macro
-(progn
-  (flycheck-def-executable-var solidity-checker "solc")
-  (flycheck-define-command-checker 'solidity-checker "A Solidity syntax checker using the solc compiler" :command
-                                   '("solc" source-inplace)
-                                   :error-patterns
-                                   '((error line-start
-                                            (file-name)
-                                            ":" line ":" column ":" " Error: "
-                                            (message))
-                                     (error line-start "Error: "
-                                            (message))
-                                     (warning line-start
-                                              (file-name)
-                                              ":" line ":" column ":" " Warning: "
-                                              (message)))
-                                   :modes 'solidity-mode :predicate
-                                   #'(lambda nil
-                                       (eq major-mode 'solidity-mode))
-                                   :next-checkers
-                                   `((,solidity-flycheck-chaining-error-level . solium-checker))
-                                   :standard-input 'nil :working-directory 'nil))
+;; expanded the flycheck-define-checker macro in order to eval certain args, as per advice given in gitter
+;; https://gitter.im/flycheck/flycheck?at=5a43b3a8232e79134d98872b
+(flycheck-def-executable-var solidity-checker "solc")
+(flycheck-define-command-checker 'solidity-checker
+                                 "A Solidity syntax checker using the solc compiler"
+                                 :command '("solc" source-inplace)
+                                 :error-patterns '((error line-start (file-name) ":" line ":" column ":" " Error: " (message))
+                                                   (error line-start "Error: " (message))
+                                                   (warning line-start (file-name) ":" line ":" column ":" " Warning: " (message)))
+                                 :modes 'solidity-mode
+                                 :predicate #'(lambda nil (eq major-mode 'solidity-mode))
+                                 :next-checkers `((,solidity-flycheck-chaining-error-level . solium-checker))
+                                 :standard-input 'nil
+                                 :working-directory 'nil)
 
 ;; define solium flycheck syntax checker
 (flycheck-define-checker solium-checker
@@ -131,10 +108,9 @@ we pass the directory to solium via the `--config' option."
                                    (option "--config=" flycheck-solidity-solium-soliumrcfile concat)
                                    "-f"
                                    source-inplace)
-                         :error-patterns
-                         ((error line-start  (zero-or-more " ") line ":" column (zero-or-more " ") "error" (message))
-                          (error line-start (zero-or-more not-newline) "[Fatal error]" (message))
-                          (warning line-start (zero-or-more " ") line ":" column (zero-or-more " ") "warning" (message)))
+                         :error-patterns ((error line-start (zero-or-more " ") line ":" column (zero-or-more " ") "error" (message))
+                                          (error line-start (zero-or-more not-newline) "[Fatal error]" (message))
+                                          (warning line-start (zero-or-more " ") line ":" column (zero-or-more " ") "warning" (message)))
                          :error-filter
                          ;; Add fake line numbers if they are missing in the lint output
                          (lambda (errors)
