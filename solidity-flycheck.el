@@ -86,31 +86,43 @@ we pass the directory to solium via the `--config' option."
 
 (when solidity-flycheck-solium-checker-active
   ;; define solium flycheck syntax checker
+  ;; expanded the flycheck-define-checker macro in order to eval certain args, as per advice given in gitter
+  ;; https://gitter.im/flycheck/flycheck?at=5a43b3a8232e79134d98872b
   ;; first try to add solium to the checker's list since if we got solc
   ;; it must come after it in the list due to it being chained after solc
-  (if (funcall flycheck-executable-find solidity-solium-path)
-      (progn
-        (flycheck-define-checker solium-checker
-          "A Solidity linter using solium"
-          :command ("solium"
-                    (option "--config=" flycheck-solidity-solium-soliumrcfile concat)
-                    "-f"
-                    source-inplace)
-          :error-patterns ((error line-start (zero-or-more " ") line ":" column (zero-or-more " ") "error" (message))
-                           (error line-start (zero-or-more not-newline) "[Fatal error]" (message))
-                           (warning line-start (zero-or-more " ") line ":" column (zero-or-more " ") "warning" (message)))
-          :error-filter
-          ;; Add fake line numbers if they are missing in the lint output
-          (lambda (errors)
-            (dolist (err errors)
-              (unless (flycheck-error-line err)
-                (setf (flycheck-error-line err) 1)))
-            errors)
-          :modes solidity-mode
-          :predicate (lambda () (eq major-mode 'solidity-mode)))
-        (add-to-list 'flycheck-checkers 'solium-checker)
-        (setq flycheck-solium-checker-executable solidity-solium-path))
-    (error (format "Solidity Mode Configuration error. Requested solium flycheck integration but can't find solium at: %s" solidity-solium-path))))
+  (flycheck-def-executable-var solium-checker "solium")
+  (let ((solium-full-path (funcall flycheck-executable-find solidity-solium-path)))
+    (if solium-full-path
+        (let ((solium-has-reporter (string-match-p "--reporter" (shell-command-to-string (concat solium-full-path " --help")))))
+          (flycheck-define-command-checker 'solium-checker
+            "A Solidity linter using solium"
+            :command `("solium"
+                       ,(if solium-has-reporter "--reporter=gcc" "")
+                       (option "--config=" flycheck-solidity-solium-soliumrcfile concat)
+                       "-f"
+                       source-inplace)
+            :error-patterns `((error line-start (zero-or-more not-newline) "[Fatal error]" (message))
+                              ,(if solium-has-reporter
+                                   '(error line-start (file-name) ":" line ":" column ": error: " (message))
+                                 '(error line-start (zero-or-more " ") line ":" column (zero-or-more " ") "error" (message)))
+                              ,(if solium-has-reporter
+                                   '(warning line-start (file-name) ":" line ":" column ": warning: " (message))
+                                 '(warning line-start (zero-or-more " ") line ":" column (zero-or-more " ") "warning" (message))))
+            :error-filter
+            ;; Add fake line numbers if they are missing in the lint output
+            #'(lambda (errors)
+                (dolist (err errors)
+                  (unless (flycheck-error-line err)
+                    (setf (flycheck-error-line err) 1)))
+                errors)
+            :modes 'solidity-mode
+            :predicate #'(lambda nil (eq major-mode 'solidity-mode))
+            :next-checkers 'nil
+            :standard-input 'nil
+            :working-directory 'nil)
+          (add-to-list 'flycheck-checkers 'solium-checker)
+          (setq flycheck-solium-checker-executable solidity-solium-path))
+      (error (format "Solidity Mode Configuration error. Requested solium flycheck integration but can't find solium at: %s" solidity-solium-path)))))
 
 (when solidity-flycheck-solc-checker-active
   ;; add a solidity mode callback to set the executable of solc for flycheck
