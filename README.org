@@ -70,7 +70,10 @@ Solidity mode can also interface with [[https://github.com/flycheck/flycheck][fl
 download and install the flycheck package. Then configure it to either work on
 all modes or enable it only for solidity mode.
 
-Flycheck can interface with solc and/or with [[http://solium.readthedocs.io/en/latest/][solium]]. You have to specifically set the path
+Flycheck can interface with solc and/or with [[http://solium.readthedocs.io/en/latest/][solium]]. We only support integration
+with solium >= =v0.2.0=
+
+You have to specifically set the path
 to both executables and activate the checker integration by setting the following:
 
 To activate =solc= checker
