@@ -44,7 +44,7 @@ You can modify the default keybindings of the solidity mode keymap by adding
 a new key combination for each command you want to change. For example
 
 #+BEGIN_SRC lisp
-(define-key map (kbd "C-c C-g") 'solidity-estimate-gas-at-point)
+(define-key solidity-mode-map (kbd "C-c C-g") 'solidity-estimate-gas-at-point)
 #+END_SRC
 
 ** Interface with linters
