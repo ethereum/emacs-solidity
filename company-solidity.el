@@ -6,7 +6,7 @@
 ;; URL: https://github.com/ethereum/emacs-solidity
 ;; Keywords: solidity, completion, company
 ;; Version: 2.0.0
-;; Package-Requires: ((company "0.9.0") (cl-lib "0.5.0"))
+;; Package-Requires: ((company "0.9.0") (cl-lib "0.5.0") (solidity-mode "0.1.9"))
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
