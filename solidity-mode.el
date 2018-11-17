@@ -3,7 +3,7 @@
 ;; Copyright (C) 2015-2018  Lefteris Karapetsas
 
 ;; Author: Lefteris Karapetsas  <lefteris@refu.co>
-;; Keywords: languages
+;; Keywords: languages, solidity
 ;; Version: 0.1.9
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -529,13 +529,6 @@ Cursor must be at the function's name.  Does not currently work for constructors
   ;; set hooks
   (run-hooks 'solidity-mode-hook))
 
-;;; --- interface with flycheck if existing ---
-(when (require 'flycheck nil 'noerror)
-  (require 'solidity-flycheck))
-
-;;; --- autcompletion back-end for company-mode, loads if company mode is installed ---
-(when (require 'company nil 'noerror)
-  (require 'company-solidity))
 
 (provide 'solidity-mode)
 ;;; solidity-mode.el ends here

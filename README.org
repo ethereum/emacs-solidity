@@ -76,6 +76,13 @@ with solium >= =v0.2.0=
 You have to specifically set the path
 to both executables and activate the checker integration by setting the following:
 
+To activate flycheck you need the =solidity-flycheck= package and to add this in your
+emacs file:
+
+#+BEGIN_SRC emacs-lisp
+(require 'solidity-flycheck)
+#+END_SRC
+
 To activate =solc= checker
 #+BEGIN_SRC emacs-lisp
 (setq solidity-flycheck-solc-checker-active t)
@@ -121,7 +128,12 @@ of the solc checker after which solium will not run. If =t= is given solium will
 if anything over than a warning is found in solc solium will not run.
 
 ** [Optional] Autocompletion
-[[https://github.com/ssmolkin1/company-solidity][company-solidity]], a simple [[http://company-mode.github.io/][company-mode]] back-end for Solidity, has now been fully integrated into solidity-mode. You no longer need to install company-solidity separately from solidity-mode, nor should you do so. To take advantage of the autocompletion features, you must have the [[http://company-mode.github.io/][company-mode]] package installed. The autocompletion features will be enabled automatically if you have company-mode installed.
+To achieve solidity autcompletion you will need the  =company-solidity= package, a simple [[http://company-mode.github.io/][company-mode]] back-end for Solidity.
+To use it make sure that company-mode is installed and then:
+
+#+BEGIN_SRC emacs-lisp
+(require 'company-solidity)
+#+END_SRC
 
 *** What it does
 Give completion suggestions for Solidity keywords, global variables, and address methods.
