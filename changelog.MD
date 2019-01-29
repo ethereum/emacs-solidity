@@ -14,6 +14,8 @@ The changelog starts from version 0.1.4 as too much was added in each version be
 
   - payable
 
+- Added support for Imenu
+
 ## Version 0.1.9
 
 - Integrated [company-solidity](https://github.com/ssmolkin1/company-solidity) into solidity-mode, providing autocompletion out of the box if the user has [company-mode](http://company-mode.github.io) installed.

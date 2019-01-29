@@ -493,6 +493,24 @@ Cursor must be at the function's name.  Does not currently work for constructors
   (interactive)
   (solidity--start-gasestimate (thing-at-point 'symbol 'no-properties)))
 
+;;; Support for imenu
+(defun solidity-mode-imenu-generic-expression ()
+  (let* ((spacetabs "[\t\n ]+")
+         (optional-spacetabs "[\t\n ]*")
+         (ident-group "\\([A-Za-z_][A-Za-z0-9_]*\\)")
+         (ctr-ident-group "\\(constructor\\)")
+         (modifier (mapconcat 'identity
+                              '("payable" "public" "private" "external" "internal" "view" "pure")
+                              "\\|"))
+         (modifiers (concat "\\(?:\\(?:" modifier "\\)" spacetabs "\\)*")))
+    `(("function", (concat "^" optional-spacetabs "function" spacetabs ident-group) 1)
+      ("modifier", (concat "^" optional-spacetabs "modifier" spacetabs ident-group) 1)
+      ("constructor", (concat "^" optional-spacetabs ctr-ident-group) 1)
+      ("contract", (concat "^" optional-spacetabs "contract" spacetabs ident-group) 1)
+      ("library", (concat "^" optional-spacetabs "library" spacetabs ident-group) 1)
+      ("interface", (concat "^" optional-spacetabs "interface" spacetabs ident-group) 1)
+      )))
+
 ;;;###autoload
 (define-derived-mode solidity-mode c-mode "solidity"
   "Major mode for editing solidity language buffers."
@@ -523,6 +541,10 @@ Cursor must be at the function's name.  Does not currently work for constructors
   (set (make-local-variable 'comment-multi-line) t)
   (set (make-local-variable 'comment-line-break-function)
        'c-indent-new-comment-line)
+
+  ;; set imenu
+  (setq imenu-generic-expression
+        (solidity-mode-imenu-generic-expression))
 
   ;; set keymap
   (use-local-map solidity-mode-map)
