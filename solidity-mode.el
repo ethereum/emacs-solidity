@@ -541,6 +541,7 @@ Cursor must be at the function's name.  Does not currently work for constructors
   (set (make-local-variable 'comment-multi-line) t)
   (set (make-local-variable 'comment-line-break-function)
        'c-indent-new-comment-line)
+  (set (make-local-variable 'c-mode-hook) nil)
 
   ;; set imenu
   (setq imenu-generic-expression
