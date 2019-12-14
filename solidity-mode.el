@@ -541,6 +541,9 @@ Cursor must be at the function's name.  Does not currently work for constructors
   (set (make-local-variable 'comment-multi-line) t)
   (set (make-local-variable 'comment-line-break-function)
        'c-indent-new-comment-line)
+
+  ;; Do not run `c-mode-hook'.
+  ;; See https://github.com/ethereum/emacs-solidity/issues/49.
   (set (make-local-variable 'c-mode-hook) nil)
 
   ;; set imenu
