@@ -63,6 +63,11 @@ Possible values are:
   :package-version '(solidity . "0.1.7")
   :safe #'symbolp)
 
+(defcustom solidity-mode-disable-c-mode-hook t
+  "If non-nil, do not run `c-mode-hook'."
+  :group 'solidity
+  :type 'boolean)
+
 (defvar solidity-mode-map
   (let ((map (make-sparse-keymap)))
     (define-key map "\C-j" 'newline-and-indent)
@@ -541,6 +546,9 @@ Cursor must be at the function's name.  Does not currently work for constructors
   (set (make-local-variable 'comment-multi-line) t)
   (set (make-local-variable 'comment-line-break-function)
        'c-indent-new-comment-line)
+
+  (when solidity-mode-disable-c-mode-hook
+    (set (make-local-variable 'c-mode-hook) nil))
 
   ;; set imenu
   (setq imenu-generic-expression
