@@ -42,6 +42,7 @@
 
 (defcustom solidity-mode-hook nil
   "Callback hook to execute whenever a solidity file is loaded."
+  :type 'hook
   :group 'solidity)
 
 (defcustom solidity-comment-style 'star
@@ -500,6 +501,7 @@ Cursor must be at the function's name.  Does not currently work for constructors
 
 ;;; Support for imenu
 (defun solidity-mode-imenu-generic-expression ()
+  "Generic expressions for solidity mode imenu."
   (let* ((spacetabs "[\t\n ]+")
          (optional-spacetabs "[\t\n ]*")
          (ident-group "\\([A-Za-z_][A-Za-z0-9_]*\\)")
@@ -546,6 +548,7 @@ Cursor must be at the function's name.  Does not currently work for constructors
   (set (make-local-variable 'comment-multi-line) t)
   (set (make-local-variable 'comment-line-break-function)
        'c-indent-new-comment-line)
+
 
   (when solidity-mode-disable-c-mode-hook
     (set (make-local-variable 'c-mode-hook) nil))
