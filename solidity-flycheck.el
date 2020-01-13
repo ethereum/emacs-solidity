@@ -4,7 +4,7 @@
 
 ;; Author: Lefteris Karapetsas  <lefteris@refu.co>
 ;; Keywords: languages, solidity, flycheck
-;; Version: 0.1.0
+;; Version: 0.1.10
 ;; Package-Requires: ((flycheck "32-cvs") (solidity-mode "0.1.9"))
 
 ;; This program is free software; you can redistribute it and/or modify
