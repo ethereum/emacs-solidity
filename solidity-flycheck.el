@@ -76,15 +76,15 @@ Possible values are:
   :package-version '(solidity . "0.1.5"))
 
 (flycheck-def-option-var flycheck-solidity-solium-soliumrcfile nil solium-check
-                         "The path to use for soliumrc.json
+  "The path to use for soliumrc.json
 
 The value of this variable is either a string denoting a path to the soliumrc.json
 or nil, to use the current directory.  When non-nil,
 we pass the directory to solium via the `--config' option."
-                         :type '(choice (const :tag "No custom soliumrc" nil)
-                                        (string :tag "Custom soliumrc file location"))
-                         :safe #'stringp
-                         :package-version '(solidity-mode . "0.1.4"))
+  :type '(choice (const :tag "No custom soliumrc" nil)
+                 (string :tag "Custom soliumrc file location"))
+  :safe #'stringp
+  :package-version '(solidity-mode . "0.1.4"))
 
 (when solidity-flycheck-solium-checker-active
   ;; define solium flycheck syntax checker
@@ -126,28 +126,52 @@ we pass the directory to solium via the `--config' option."
           (setq flycheck-solium-checker-executable solidity-solium-path))
       (error (format "Solidity Mode Configuration error. Requested solium flycheck integration but can't find solium at: %s" solidity-solium-path)))))
 
+(defun get-solc-version ()
+  "Query solc executable and return its version.
+
+  The result is returned in a list with 3 elements.MAJOR MINOR PATCH.
+
+ If the solc output can't be parsed an error is returned."
+  (let ((output (shell-command-to-string (format "%s --version" solidity-solc-path))))
+    (if (string-match "Version: \\([[:digit:]]+\\)\.\\([[:digit:]]+\\)\.\\([[:digit:]]+\\)" output)
+        (list (match-string 1 output)
+              (match-string 2 output)
+              (match-string 3 output))
+      (error "Could not parse the output of %s --version:\n %s" solidity-solc-path output))))
+
+(defun solc-gt-0.6.0 ()
+  "Return `t` if solc >= 0.6.0 and `nil` otherwise."
+  (let* ((version (get-solc-version))
+         (major (string-to-number (nth 0 version)))
+         (minor (string-to-number (nth 1 version)))
+         (patch (string-to-number (nth 2 version))))
+    (if (and (>= major 0) (>= minor 6)) t nil)))
+
 (when solidity-flycheck-solc-checker-active
   ;; add a solidity mode callback to set the executable of solc for flycheck
   ;; define solidity's flycheck syntax checker
   ;; expanded the flycheck-define-checker macro in order to eval certain args, as per advice given in gitter
   ;; https://gitter.im/flycheck/flycheck?at=5a43b3a8232e79134d98872b
   (flycheck-def-executable-var solidity-checker "solc")
-  (if (funcall flycheck-executable-find solidity-solc-path)
-      (progn
-        (flycheck-define-command-checker 'solidity-checker
-          "A Solidity syntax checker using the solc compiler"
-          :command '("solc" source-inplace)
-          :error-patterns '((error line-start (file-name) ":" line ":" column ":" " Error: " (message))
-                            (error line-start "Error: " (message))
-                            (warning line-start (file-name) ":" line ":" column ":" " Warning: " (message)))
-          :modes 'solidity-mode
-          :predicate #'(lambda nil (eq major-mode 'solidity-mode))
-          :next-checkers `((,solidity-flycheck-chaining-error-level . solium-checker))
-          :standard-input 'nil
-          :working-directory 'nil)
-        (add-to-list 'flycheck-checkers 'solidity-checker)
-        (setq flycheck-solidity-checker-executable solidity-solc-path))
-    (error (format "Solidity Mode Configuration error. Requested solc flycheck integration but can't find solc at: %s" solidity-solc-path))))
+  (let* ((cmd (if (solc-gt-0.6.0) '("solc" "--old-reporter" source-inplace) '("solc" source-inplace))))
+    (if (funcall flycheck-executable-find solidity-solc-path)
+        (progn
+          (flycheck-define-command-checker 'solidity-checker
+            "A Solidity syntax checker using the solc compiler"
+            :command cmd
+            :error-patterns '(
+                              (error line-start (file-name) ":" line ":" column ":" " Error: " (message))
+                              (error line-start (file-name) ":" line ":" column ":" " Compiler error: " (message))
+                              (error line-start "Error: " (message))
+                              (warning line-start (file-name) ":" line ":" column ":" " Warning: " (message)))
+            :modes 'solidity-mode
+            :predicate #'(lambda nil (eq major-mode 'solidity-mode))
+            :next-checkers `((,solidity-flycheck-chaining-error-level . solium-checker))
+            :standard-input 'nil
+            :working-directory 'nil)
+          (add-to-list 'flycheck-checkers 'solidity-checker)
+          (setq flycheck-solidity-checker-executable solidity-solc-path))
+      (error (format "Solidity Mode Configuration error. Requested solc flycheck integration but can't find solc at: %s" solidity-solc-path)))))
 
 (provide 'solidity-flycheck)
 ;;; solidity-flycheck.el ends here
