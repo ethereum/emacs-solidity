@@ -332,7 +332,7 @@ Possible values are:
    '(solidity-match-event-decl (1 font-lock-keyword-face)
                                   (2 font-lock-variable-name-face))
    '(solidity-match-variable-decls (1 font-lock-keyword-face)
-                                   (4 font-lock-variable-name-face))
+                                   (2 font-lock-variable-name-face))
    `(,(regexp-opt solidity-constants 'words) . font-lock-constant-face))
   "The font lock options for solidity.")
 
@@ -422,7 +422,7 @@ Highlight the 1st result."
 Highlight the 1st result."
   (solidity-match-regexp
    (concat
-    " *\\(" (regexp-opt solidity-builtin-types 'words) " *\\(\\[ *[0-9]*\\]\\)* *\\) " "\\("(regexp-opt solidity-variable-modifier 'words) " \\)* *\\(" solidity-identifier-regexp "\\)")
+    " *\\(" (regexp-opt solidity-builtin-types 'words) " *\\(?:\\[ *[0-9]*\\]\\)* *\\) " "\\(?:"(regexp-opt solidity-variable-modifier 'words) " \\)* *\\(" solidity-identifier-regexp "\\)")
    limit))
 
 ;; solidity syntax table
