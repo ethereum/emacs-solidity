@@ -137,6 +137,7 @@ Possible values are:
     "using"
     "var"
     "view"
+    "virtual"
     "while"
     )
   "Keywords of the solidity language.")
