@@ -88,7 +88,8 @@ Possible values are:
         (mapcar (lambda (x) (and (funcall condp x) x)) lst)))
 
 (defconst solidity-keywords
-  '("after"
+  '("abstract"
+    "after"
     "anonymous"
     "as"
     "assembly"
@@ -120,6 +121,7 @@ Possible values are:
     "memory"
     "modifier"
     "new"
+    "override"
     "payable"
     "pragma"
     "private"
