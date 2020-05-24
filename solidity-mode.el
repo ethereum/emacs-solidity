@@ -247,6 +247,7 @@ Possible values are:
     "int248"
     "int256"
 
+    "let"
     "mapping"
     "real"
     "string"
