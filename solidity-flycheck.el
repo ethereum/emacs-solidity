@@ -153,13 +153,18 @@ we pass the directory to solium via the `--config' option."
   ;; expanded the flycheck-define-checker macro in order to eval certain args, as per advice given in gitter
   ;; https://gitter.im/flycheck/flycheck?at=5a43b3a8232e79134d98872b
   (flycheck-def-executable-var solidity-checker "solc")
-  (let* ((cmd (if (solc-gt-0.6.0) '("solc" "--old-reporter" source-inplace) '("solc" source-inplace))))
+  (let* ((cmd (if (solc-gt-0.6.0) '("solc" "--no-color" source-inplace) '("solc" source-inplace))))
     (if (funcall flycheck-executable-find solidity-solc-path)
         (progn
           (flycheck-define-command-checker 'solidity-checker
             "A Solidity syntax checker using the solc compiler"
             :command cmd
             :error-patterns '(
+                              ;; Solidity >= 0.6.0 error formats
+                              (error line-start "Error: " (message) "\n" (zero-or-more whitespace) "--> " (file-name) ":" line ":" column)
+                              (warning line-start "Warning: " (message) "\n" (zero-or-more whitespace) "--> " (file-name) ":" line ":" column)
+
+                              ;; Solidity < 0.6.0 error formats
                               (error line-start (file-name) ":" line ":" column ":" " Error: " (message))
                               (error line-start (file-name) ":" line ":" column ":" " Compiler error: " (message))
                               (error line-start "Error: " (message))
