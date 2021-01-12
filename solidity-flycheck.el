@@ -4,8 +4,8 @@
 
 ;; Author: Lefteris Karapetsas  <lefteris@refu.co>
 ;; Keywords: languages, solidity, flycheck
-;; Version: 0.1.10
-;; Package-Requires: ((flycheck "32-cvs") (solidity-mode "0.1.9"))
+;; Version: 0.1.11
+;; Package-Requires: ((flycheck "32-cvs") (solidity-mode "0.1.9") (dash "2.17.0"))
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -29,6 +29,7 @@
 
 (require 'flycheck)
 (require 'solidity-common)
+(require 'dash)
 
 (defvar flycheck-solidity-checker-executable)
 (defvar flycheck-solium-checker-executable)
@@ -86,6 +87,55 @@ we pass the directory to solium via the `--config' option."
   :safe #'stringp
   :package-version '(solidity-mode . "0.1.4"))
 
+(defcustom solidity-flycheck-solc-additional-allow-paths nil
+  "A list of paths that should be passed to solc using the --allow-paths option.
+
+This lets you import .sol files from other directories without causing linting errors.
+For example, say that you use Brownie (URL `https://github.com/eth-brownie/brownie'),
+which stores ethPM packages in \"~/.brownie/packages\". You could add \"~/.brownie/packages\"
+to this variable to import ethPM packages without linting errors. Subdirectories
+in each allow path are remapped.
+
+Note that when `solidity-flycheck-use-project' is t, the project root will be
+added to --allow-paths in addition to any paths defined here."
+  :group 'solidity
+  :type 'list
+  :safe #'listp
+  :package-version '(solidity-mode . "0.1.11"))
+
+(defcustom solidity-flycheck-use-project nil
+  "A boolean flag denoting whether solidity-flycheck should detect projects.
+
+When t, solidity-flycheck will detect a project and include files in the project
+during compilation and linting. solidity-flycheck will look for a .soliumrc.json
+in a parent directory. If found, this directory is considered the project root. If
+no .soliumrc.json is found, `project-roots' is used.
+
+When `solidity-flycheck-solium-checker-active' is t, the .soliumrc.json found in
+the project root will be used as the solium config, rather than a .soliumrc.json
+in the same directory as the file being linted.
+
+When `solidity-flycheck-solc-checker-active' is t, the project root will be passed
+to solc using the --allow-paths flag. This means imports to other files inside the
+project will lint without erorr."
+  :group 'solidity
+  :type 'boolean
+  :safe #'booleanp
+  :package-version '(solidity-mode . "0.1.11"))
+
+(defun solidity-flycheck--find-working-directory (_checker)
+  "Look for a working directtory to run solium CHECKER in.
+
+This will be a parent directory that contains a `.soliumrc.json' file. If
+no .soliumrc.json is found, `project-roots' is used."
+  (when (and buffer-file-name solidity-flycheck-use-project)
+    (when-let ((root (or
+                      (locate-dominating-file buffer-file-name ".soliumrc.json")
+                      (let* ((proj (project-current t))
+                             (roots (project-roots proj)))
+                        (car roots)))))
+      (expand-file-name root))))
+
 (when solidity-flycheck-solium-checker-active
   ;; define solium flycheck syntax checker
   ;; expanded the flycheck-define-checker macro in order to eval certain args, as per advice given in gitter
@@ -121,7 +171,7 @@ we pass the directory to solium via the `--config' option."
             :predicate #'(lambda nil (eq major-mode 'solidity-mode))
             :next-checkers 'nil
             :standard-input 'nil
-            :working-directory 'nil)
+            :working-directory 'solidity-flycheck--find-working-directory)
           (add-to-list 'flycheck-checkers 'solium-checker)
           (setq flycheck-solium-checker-executable solidity-solium-path))
       (error (format "Solidity Mode Configuration error. Requested solium flycheck integration but can't find solium at: %s" solidity-solium-path)))))
@@ -147,13 +197,56 @@ we pass the directory to solium via the `--config' option."
          (patch (string-to-number (nth 2 version))))
     (if (and (>= major 0) (>= minor 6)) t nil)))
 
+(defun solidity-flycheck--solc-allow-paths ()
+  (append
+   (mapcar #'expand-file-name solidity-flycheck-solc-additional-allow-paths)
+   '(".")))
+
+(defun solidity-flycheck--only-subdirectories (dir)
+  (-filter
+   (lambda (p)
+     (and (file-directory-p p)
+          (not (string-prefix-p "." (file-name-nondirectory p)))))
+   (directory-files dir t)))
+
+(defun solidity-flycheck--solc-remappings ()
+  (let* ((allow-paths (solidity-flycheck--solc-allow-paths)))
+    (->> allow-paths
+         (mapcar
+          #'solidity-flycheck--only-subdirectories)
+
+         -flatten
+
+         (mapcar
+          (lambda (dir)
+            (let ((prefix (file-name-nondirectory dir)))
+              (concat prefix "=" dir)))))))
+
+(defun solidity-flycheck--solc-remappings-opt ()
+  (when-let ((remappings (solidity-flycheck--solc-remappings)))
+    remappings))
+
+(defun solidity-flycheck--solc-allow-paths-opt ()
+  (let ((allow-paths (mapconcat 'identity (solidity-flycheck--solc-allow-paths) ",")))
+    (when (not (string= "" allow-paths))
+      `("--allow-paths" ,allow-paths))))
+
+(defun solidity-flycheck--solc-cmd ()
+  (if (solc-gt-0.6.0)
+      `("solc"
+        "--no-color"
+        ,@(solidity-flycheck--solc-allow-paths-opt)
+        ,@(solidity-flycheck--solc-remappings-opt)
+        source-inplace)
+    '("solc" source-inplace)))
+
 (when solidity-flycheck-solc-checker-active
   ;; add a solidity mode callback to set the executable of solc for flycheck
   ;; define solidity's flycheck syntax checker
   ;; expanded the flycheck-define-checker macro in order to eval certain args, as per advice given in gitter
   ;; https://gitter.im/flycheck/flycheck?at=5a43b3a8232e79134d98872b
   (flycheck-def-executable-var solidity-checker "solc")
-  (let* ((cmd (if (solc-gt-0.6.0) '("solc" "--no-color" source-inplace) '("solc" source-inplace))))
+  (let* ((cmd (solidity-flycheck--solc-cmd)))
     (if (funcall flycheck-executable-find solidity-solc-path)
         (progn
           (flycheck-define-command-checker 'solidity-checker
@@ -173,7 +266,7 @@ we pass the directory to solium via the `--config' option."
             :predicate #'(lambda nil (eq major-mode 'solidity-mode))
             :next-checkers `((,solidity-flycheck-chaining-error-level . solium-checker))
             :standard-input 'nil
-            :working-directory 'nil)
+            :working-directory 'solidity-flycheck--find-working-directory)
           (add-to-list 'flycheck-checkers 'solidity-checker)
           (setq flycheck-solidity-checker-executable solidity-solc-path))
       (error (format "Solidity Mode Configuration error. Requested solc flycheck integration but can't find solc at: %s" solidity-solc-path)))))
