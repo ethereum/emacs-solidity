@@ -212,11 +212,9 @@ no .soliumrc.json is found, `project-roots' is used."
 (defun solidity-flycheck--solc-remappings ()
   (let* ((allow-paths (solidity-flycheck--solc-allow-paths)))
     (->> allow-paths
-         (mapcar
-          #'solidity-flycheck--only-subdirectories)
-
+         (remove-if-not #'file-exists-p)
+         (mapcar #'solidity-flycheck--only-subdirectories)
          -flatten
-
          (mapcar
           (lambda (dir)
             (let ((prefix (file-name-nondirectory dir)))
