@@ -17,6 +17,11 @@ If you don't know how to use el-get you can find more information on its [[https
 ** Melpa
 You can also obtain solidity-mode from [[http://melpa.org/#/][Melpa]] as can be seen [[http://melpa.org/#/solidity-mode][here]].
 
+1. Install melpa and make sure emacs is started with it.
+2. Press =Alt+x= (this is in emacs notation written as =M-x= ) and then type =package-refresh-contents=.
+3. Press =Alt+x= and then type =package-install=. This will prompt you for a package.
+3. type =solidity-mode= and hit enter, this should install all you need.
+
 * Configuration
 By default solidity-mode associates itself with any files ending in =.sol=.
 
