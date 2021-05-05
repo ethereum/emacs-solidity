@@ -297,7 +297,7 @@ Possible values are:
   "Built in constructs of the solidity language.")
 
 (defvar solidity-identifier-regexp
-  "\\([a-zA-z0-9]\\|_\\)+")
+  "\\([a-zA-Z0-9]\\|_\\)+")
 
 (defvar solidity-variable-attributes
   "\\(&\\|*\\|~\\)"
