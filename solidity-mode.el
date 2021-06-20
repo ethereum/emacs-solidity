@@ -106,6 +106,7 @@ Possible values are:
     "emit"
     "enum"
     "event"
+    "error"
     "external"
     "for"
     "function"
@@ -335,6 +336,8 @@ Possible values are:
                                 (2 font-lock-variable-name-face))
    '(solidity-match-event-decl (1 font-lock-keyword-face)
                                   (2 font-lock-variable-name-face))
+   '(solidity-match-error-decl (1 font-lock-keyword-face)
+                               (2 font-lock-variable-name-face))
    '(solidity-match-variable-decls (1 font-lock-keyword-face)
                                    (2 font-lock-variable-name-face))
    `(,(regexp-opt solidity-constants 'words) . font-lock-constant-face))
@@ -400,6 +403,15 @@ Highlight the 1st result."
   (solidity-match-regexp
    (concat
     " *\\(\\<event\\>\\) +\\(" solidity-identifier-regexp "\\)")
+   limit))
+
+(defun solidity-match-error-decl (limit)
+  "Search the buffer forward until LIMIT matching error names.
+
+Highlight the 1st result."
+  (solidity-match-regexp
+   (concat
+    " *\\(\\<error\\>\\) +\\(" solidity-identifier-regexp "\\)")
    limit))
 
 (defun solidity-match-modifier-decl (limit)
