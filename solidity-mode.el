@@ -111,6 +111,7 @@ Possible values are:
     "for"
     "function"
     "if"
+    "immutable"
     "import"
     "in"
     "indexed"
@@ -171,6 +172,7 @@ Possible values are:
 (defconst solidity-variable-modifier
   '("constant"
     "public"
+    "immutable"
     "indexed"
     "storage"
     "memory"
