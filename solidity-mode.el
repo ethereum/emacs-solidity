@@ -340,6 +340,8 @@ Possible values are:
                                   (2 font-lock-variable-name-face))
    '(solidity-match-error-decl (1 font-lock-keyword-face)
                                (2 font-lock-variable-name-face))
+   '(solidity-match-user-defined-value-type-decl (1 font-lock-keyword-face)
+                               (2 font-lock-variable-name-face))
    '(solidity-match-variable-decls (1 font-lock-keyword-face)
                                    (2 font-lock-variable-name-face))
    `(,(regexp-opt solidity-constants 'words) . font-lock-constant-face))
@@ -414,6 +416,15 @@ Highlight the 1st result."
   (solidity-match-regexp
    (concat
     " *\\(\\<error\\>\\) +\\(" solidity-identifier-regexp "\\)")
+   limit))
+
+(defun solidity-match-user-defined-value-type-decl (limit)
+  "Search the buffer forward until LIMIT matching user defined value type names.
+
+Highlight the 1st result."
+  (solidity-match-regexp
+   (concat
+    " *\\(\\<type\\>\\) +\\(" solidity-identifier-regexp "\\)")
    limit))
 
 (defun solidity-match-modifier-decl (limit)
