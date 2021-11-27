@@ -95,6 +95,7 @@ Possible values are:
     "assembly"
     "assert"
     "break"
+    "calldata"
     "catch"
     "constant"
     "constructor"
@@ -178,6 +179,7 @@ Possible values are:
     "indexed"
     "storage"
     "memory"
+    "calldata"
     )
   "Modifiers of variables in solidity.")
 
