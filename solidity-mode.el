@@ -338,6 +338,8 @@ Possible values are:
                                  (2 font-lock-variable-name-face))
    '(solidity-match-contract-decl (1 font-lock-keyword-face)
                                   (2 font-lock-variable-name-face))
+   '(solidity-match-interface-decl (1 font-lock-keyword-face)
+                                  (2 font-lock-variable-name-face))
    '(solidity-match-modifier-decl (1 font-lock-keyword-face)
                                 (2 font-lock-variable-name-face))
    '(solidity-match-struct-decl (1 font-lock-keyword-face)
@@ -368,6 +370,15 @@ First match should be a keyword and second an identifier."
   (solidity-match-regexp
    (concat
     " *\\(\\<contract\\>\\) +\\(" solidity-identifier-regexp "\\)")
+   limit))
+
+(defun solidity-match-interface-decl (limit)
+  "Search the buffer forward until LIMIT matching interface declarations.
+
+First match should be a keyword and second an identifier."
+  (solidity-match-regexp
+   (concat
+    " *\\(\\<interface\\>\\) +\\(" solidity-identifier-regexp "\\)")
    limit))
 
 (defun solidity-match-library-decl (limit)
