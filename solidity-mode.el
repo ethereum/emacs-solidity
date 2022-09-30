@@ -596,6 +596,10 @@ Cursor must be at the function's name.  Does not currently work for constructors
        'c-indent-new-comment-line)
   (set (make-local-variable 'c-basic-offset) 4)
 
+  ;; customize indentation more specific to Solidity
+  (make-local-variable 'c-offsets-alist)
+  (add-to-list 'c-offsets-alist '(arglist-close . c-lineup-close-paren))
+
   (when solidity-mode-disable-c-mode-hook
     (set (make-local-variable 'c-mode-hook) nil))
 
