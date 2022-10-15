@@ -258,7 +258,7 @@ no .soliumrc.json is found, `project-roots' is used."
 (flycheck-def-executable-var solhint-checker "solhint")
 (flycheck-define-command-checker 'solhint-checker
   "A Solidity linter using solhint"
-  :command `(,solidity-solhint-path "-f" "visualstudio" source-inplace)
+  :command `(,solidity-solhint-path "-f" "unix" source-inplace)
   :error-patterns `((error
                      line-start (file-name) "("  line "," column "):" (zero-or-more " ")
                      "error" (zero-or-more " ") (message))
