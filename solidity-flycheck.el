@@ -30,16 +30,7 @@
 (require 'flycheck)
 (require 'solidity-common)
 (require 'dash)
-
-(defvar flycheck-solidity-checker-executable)
-(defvar flycheck-solium-checker-executable)
-
-(defcustom solidity-flycheck-solc-checker-active nil
-  "A boolean flag denoting if solc flycheck checker should be active."
-  :group 'solidity
-  :type 'boolean
-  :safe #'booleanp
-  :package-version '(solidity . "0.1.5"))
+(require 'project)
 
 (defcustom solidity-flycheck-chaining-error-level 'warning
   "The maximum error level at which chaining of checkers will happen.
@@ -68,13 +59,6 @@ Possible values are:
                  (const :tag "Always chain" t))
   :package-version '(solidity . "0.1.5")
   :safe #'symbolp)
-
-(defcustom solidity-flycheck-solium-checker-active nil
-  "A boolean flag denoting if solium flycheck checker should be active."
-  :group 'solidity
-  :type 'boolean
-  :safe #'booleanp
-  :package-version '(solidity . "0.1.5"))
 
 (flycheck-def-option-var flycheck-solidity-solium-soliumrcfile nil solium-check
   "The path to use for soliumrc.json
@@ -111,13 +95,15 @@ during compilation and linting. solidity-flycheck will look for a .soliumrc.json
 in a parent directory. If found, this directory is considered the project root. If
 no .soliumrc.json is found, `project-roots' is used.
 
-When `solidity-flycheck-solium-checker-active' is t, the .soliumrc.json found in
-the project root will be used as the solium config, rather than a .soliumrc.json
-in the same directory as the file being linted.
+When using solium-checker, the .soliumrc.json found in the project root will be
+used as the solium config, rather than a .soliumrc.json in the same directory as
+the file being linted.
 
-When `solidity-flycheck-solc-checker-active' is t, the project root will be passed
-to solc using the --allow-paths flag. This means imports to other files inside the
-project will lint without erorr."
+When using solhint-checker, solhint will be run at the project root.
+
+When using solidity-checker , the project root will be passed to solc using the
+--allow-paths flag. This means imports to other files inside the project will
+lint without erorr."
   :group 'solidity
   :type 'boolean
   :safe #'booleanp
@@ -136,45 +122,52 @@ no .soliumrc.json is found, `project-roots' is used."
                         (car roots)))))
       (expand-file-name root))))
 
-(when solidity-flycheck-solium-checker-active
   ;; define solium flycheck syntax checker
   ;; expanded the flycheck-define-checker macro in order to eval certain args, as per advice given in gitter
   ;; https://gitter.im/flycheck/flycheck?at=5a43b3a8232e79134d98872b
   ;; first try to add solium to the checker's list since if we got solc
   ;; it must come after it in the list due to it being chained after solc
-  (flycheck-def-executable-var solium-checker "solium")
-  (let ((solium-full-path (funcall flycheck-executable-find solidity-solium-path)))
-    (if solium-full-path
-        (let ((solium-has-reporter (string-match-p "--reporter" (shell-command-to-string (concat solium-full-path " --help")))))
-          (flycheck-define-command-checker 'solium-checker
-            "A Solidity linter using solium"
-            :command `("solium"
-                       ,(if solium-has-reporter "--reporter=gcc" "")
-                       (option "--config=" flycheck-solidity-solium-soliumrcfile concat)
-                       "-f"
-                       source-inplace)
-            :error-patterns `((error line-start (zero-or-more not-newline) "[Fatal error]" (message))
-                              ,(if solium-has-reporter
-                                   '(error line-start (file-name) ":" line ":" column ": error: " (message))
-                                 '(error line-start (zero-or-more " ") line ":" column (zero-or-more " ") "error" (message)))
-                              ,(if solium-has-reporter
-                                   '(warning line-start (file-name) ":" line ":" column ": warning: " (message))
-                                 '(warning line-start (zero-or-more " ") line ":" column (zero-or-more " ") "warning" (message))))
-            :error-filter
-            ;; Add fake line numbers if they are missing in the lint output
-            #'(lambda (errors)
-                (dolist (err errors)
-                  (unless (flycheck-error-line err)
-                    (setf (flycheck-error-line err) 1)))
-                errors)
-            :modes 'solidity-mode
-            :predicate #'(lambda nil (eq major-mode 'solidity-mode))
-            :next-checkers 'nil
-            :standard-input 'nil
-            :working-directory 'solidity-flycheck--find-working-directory)
-          (add-to-list 'flycheck-checkers 'solium-checker)
-          (setq flycheck-solium-checker-executable solidity-solium-path))
-      (error (format "Solidity Mode Configuration error. Requested solium flycheck integration but can't find solium at: %s" solidity-solium-path)))))
+(flycheck-def-executable-var solium-checker "solium")
+
+(defun solium-has-reporter ()
+  (let ((solium-full-path (funcall
+                           flycheck-executable-find
+                           (or flycheck-solium-checker-executable solidity-solium-path))))
+    (and solium-full-path
+         (string-match-p "--reporter" (shell-command-to-string (concat solium-full-path " --help"))))))
+
+(flycheck-define-command-checker 'solium-checker
+  "A Solidity linter using solium"
+  :command `(,solidity-solium-path
+             (eval (when (solium-has-reporter) "--reporter=gcc"))
+             (option "--config=" flycheck-solidity-solium-soliumrcfile concat)
+             "-f"
+             source-inplace)
+:error-patterns `((error line-start (zero-or-more not-newline) "[Fatal error]" (message))
+                  (error line-start (zero-or-more " ") line ":" column (zero-or-more " ") "error" (message))
+                  (warning line-start (zero-or-more " ") line ":" column (zero-or-more " ") "warning" (message))
+                  ;; reporter=gcc formats
+                  (error line-start (file-name) ":" line ":" column ": error: " (message))
+                  (warning line-start (file-name) ":" line ":" column ": warning: " (message)))
+
+  :error-filter
+  ;; Add fake line numbers if they are missing in the lint output
+  #'(lambda (errors)
+      (dolist (err errors)
+        (unless (flycheck-error-line err)
+          (setf (flycheck-error-line err) 1)))
+      errors)
+  :modes 'solidity-mode
+  :predicate #'(lambda nil (eq major-mode 'solidity-mode))
+  :next-checkers `((,solidity-flycheck-chaining-error-level . solhint-checker))
+  :standard-input 'nil
+  :working-directory 'solidity-flycheck--find-working-directory)
+
+;; add a solidity mode callback to set the executable of solc for flycheck
+;; define solidity's flycheck syntax checker
+;; expanded the flycheck-define-checker macro in order to eval certain args, as per advice given in gitter
+;; https://gitter.im/flycheck/flycheck?at=5a43b3a8232e79134d98872b
+(flycheck-def-executable-var solidity-checker "solc")
 
 (defun get-solc-version ()
   "Query solc executable and return its version.
@@ -182,12 +175,15 @@ no .soliumrc.json is found, `project-roots' is used."
   The result is returned in a list with 3 elements.MAJOR MINOR PATCH.
 
  If the solc output can't be parsed an error is returned."
-  (let ((output (shell-command-to-string (format "%s --version" solidity-solc-path))))
+  (let* ((solc-full-path (funcall
+                          flycheck-executable-find
+                          (or flycheck-solidity-checker-executable solidity-solc-path)))
+         (output (shell-command-to-string (format "%s --version" solc-full-path))))
     (if (string-match "Version: \\([[:digit:]]+\\)\.\\([[:digit:]]+\\)\.\\([[:digit:]]+\\)" output)
         (list (match-string 1 output)
               (match-string 2 output)
               (match-string 3 output))
-      (error "Could not parse the output of %s --version:\n %s" solidity-solc-path output))))
+      (error "Could not parse the output of %s --version:\n %s" solc-full-path output))))
 
 (defun solc-gt-0.6.0 ()
   "Return `t` if solc >= 0.6.0 and `nil` otherwise."
@@ -212,7 +208,7 @@ no .soliumrc.json is found, `project-roots' is used."
 (defun solidity-flycheck--solc-remappings ()
   (let* ((allow-paths (solidity-flycheck--solc-allow-paths)))
     (->> allow-paths
-         (cl-remove-if-not #'file-exists-p)
+         (remove-if-not #'file-exists-p)
          (mapcar #'solidity-flycheck--only-subdirectories)
          -flatten
          (mapcar
@@ -230,44 +226,61 @@ no .soliumrc.json is found, `project-roots' is used."
       `("--allow-paths" ,allow-paths))))
 
 (defun solidity-flycheck--solc-cmd ()
-  (if (solc-gt-0.6.0)
-      `("solc"
-        "--no-color"
-        ,@(solidity-flycheck--solc-allow-paths-opt)
-        ,@(solidity-flycheck--solc-remappings-opt)
-        source-inplace)
-    '("solc" source-inplace)))
+  `(,solidity-solc-path
+    (eval
+     (when (solc-gt-0.6.0)
+       `("--no-color"
+         ,@(solidity-flycheck--solc-allow-paths-opt)
+         ,@(solidity-flycheck--solc-remappings-opt))))
+    source-inplace))
 
-(when solidity-flycheck-solc-checker-active
-  ;; add a solidity mode callback to set the executable of solc for flycheck
-  ;; define solidity's flycheck syntax checker
-  ;; expanded the flycheck-define-checker macro in order to eval certain args, as per advice given in gitter
-  ;; https://gitter.im/flycheck/flycheck?at=5a43b3a8232e79134d98872b
-  (flycheck-def-executable-var solidity-checker "solc")
-  (let* ((cmd (solidity-flycheck--solc-cmd)))
-    (if (funcall flycheck-executable-find solidity-solc-path)
-        (progn
-          (flycheck-define-command-checker 'solidity-checker
-            "A Solidity syntax checker using the solc compiler"
-            :command cmd
-            :error-patterns '(
-                              ;; Solidity >= 0.6.0 error formats
-                              (error line-start "Error: " (message) "\n" (zero-or-more whitespace) "--> " (file-name) ":" line ":" column)
-                              (warning line-start "Warning: " (message) "\n" (zero-or-more whitespace) "--> " (file-name) ":" line ":" column)
+(flycheck-define-command-checker 'solidity-checker
+  "A Solidity syntax checker using the solc compiler"
+  :command (solidity-flycheck--solc-cmd)
+  :error-patterns '(
+                    ;; Solidity >= 0.6.0 error formats
+                    (error line-start "Error: " (message) "\n" (zero-or-more whitespace) "--> " (file-name) ":" line ":" column)
+                    (warning line-start "Warning: " (message) "\n" (zero-or-more whitespace) "--> " (file-name) ":" line ":" column)
 
-                              ;; Solidity < 0.6.0 error formats
-                              (error line-start (file-name) ":" line ":" column ":" " Error: " (message))
-                              (error line-start (file-name) ":" line ":" column ":" " Compiler error: " (message))
-                              (error line-start "Error: " (message))
-                              (warning line-start (file-name) ":" line ":" column ":" " Warning: " (message)))
-            :modes 'solidity-mode
-            :predicate #'(lambda nil (eq major-mode 'solidity-mode))
-            :next-checkers `((,solidity-flycheck-chaining-error-level . solium-checker))
-            :standard-input 'nil
-            :working-directory 'solidity-flycheck--find-working-directory)
-          (add-to-list 'flycheck-checkers 'solidity-checker)
-          (setq flycheck-solidity-checker-executable solidity-solc-path))
-      (error (format "Solidity Mode Configuration error. Requested solc flycheck integration but can't find solc at: %s" solidity-solc-path)))))
+                    ;; Solidity < 0.6.0 error formats
+                    (error line-start (file-name) ":" line ":" column ":" " Error: " (message))
+                    (error line-start (file-name) ":" line ":" column ":" " Compiler error: " (message))
+                    (error line-start "Error: " (message))
+                    (warning line-start (file-name) ":" line ":" column ":" " Warning: " (message)))
+  :modes 'solidity-mode
+  :predicate #'(lambda nil (eq major-mode 'solidity-mode))
+  :next-checkers
+  `((,solidity-flycheck-chaining-error-level . solium-checker)
+    (,solidity-flycheck-chaining-error-level . solhint-checker))
+  :standard-input 'nil
+  :working-directory 'solidity-flycheck--find-working-directory)
+
+(flycheck-def-executable-var solhint-checker "solhint")
+(flycheck-define-command-checker 'solhint-checker
+  "A Solidity linter using solhint"
+  :command `(,solidity-solhint-path "-f" "visualstudio" source-inplace)
+  :error-patterns `((error
+                     line-start (file-name) "("  line "," column "):" (zero-or-more " ")
+                     "error" (zero-or-more " ") (message))
+                    (warning
+                     line-start (file-name) "("  line "," column "):" (zero-or-more " ")
+                     "warning" (zero-or-more " ") (message)))
+  :error-filter
+  ;; Add fake line numbers if they are missing in the lint output
+  #'(lambda (errors)
+      (dolist (err errors)
+        (unless (flycheck-error-line err)
+          (setf (flycheck-error-line err) 1)))
+      errors)
+  :modes 'solidity-mode
+  :predicate #'(lambda nil (eq major-mode 'solidity-mode))
+  :next-checkers 'nil
+  :standard-input 'nil
+  :working-directory 'solidity-flycheck--find-working-directory)
+
+(add-to-list 'flycheck-checkers 'solhint-checker)
+(add-to-list 'flycheck-checkers 'solium-checker)
+(add-to-list 'flycheck-checkers 'solidity-checker)
 
 (provide 'solidity-flycheck)
 ;;; solidity-flycheck.el ends here

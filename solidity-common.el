@@ -37,5 +37,11 @@
   :type 'string
   :package-version '(solidity . "0.1.4"))
 
+(defcustom solidity-solhint-path "solhint"
+  "Path to the solium binary."
+  :group 'solidity
+  :type 'string
+  :package-version '(solidity . "0.1.12"))
+
 (provide 'solidity-common)
 ;;; solidity-common.el ends here
