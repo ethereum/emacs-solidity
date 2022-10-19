@@ -258,13 +258,13 @@ no .soliumrc.json is found, `project-roots' is used."
 (flycheck-def-executable-var solhint-checker "solhint")
 (flycheck-define-command-checker 'solhint-checker
   "A Solidity linter using solhint"
-  :command `(,solidity-solhint-path "-f" "visualstudio" source-inplace)
+  :command `(,solidity-solhint-path "-f" "unix" source-inplace)
   :error-patterns `((error
-                     line-start (file-name) "("  line "," column "):" (zero-or-more " ")
-                     "error" (zero-or-more " ") (message))
+                     line-start (file-name) ":"  line ":" column ":" (zero-or-more " ")
+                     (zero-or-more " ") (message (one-or-more not-newline) "[Error/" (one-or-more not-newline) "]" ))
                     (warning
-                     line-start (file-name) "("  line "," column "):" (zero-or-more " ")
-                     "warning" (zero-or-more " ") (message)))
+                     line-start (file-name) ":"  line ":" column ":" (zero-or-more " ")
+                     (zero-or-more " ") (message (one-or-more not-newline) "[Warning/" (one-or-more not-newline) "]" )))
   :error-filter
   ;; Add fake line numbers if they are missing in the lint output
   #'(lambda (errors)
