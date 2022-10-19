@@ -38,7 +38,7 @@
   :package-version '(solidity . "0.1.4"))
 
 (defcustom solidity-solhint-path "solhint"
-  "Path to the solium binary."
+  "Path to the solhint binary."
   :group 'solidity
   :type 'string
   :package-version '(solidity . "0.1.12"))
