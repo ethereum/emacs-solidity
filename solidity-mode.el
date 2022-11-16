@@ -474,8 +474,9 @@ Highlight the 1st result."
 ;; solidity syntax table
 (defvar solidity-mode-syntax-table
   (let ((st (make-syntax-table)))
-    ;; '_' underscore is a valid part of a word
+    ;; Underscore ('_') and dollar sign ('$') are valid parts of a word.
     (modify-syntax-entry ?_ "w" st)
+    (modify-syntax-entry ?$ "w" st)
     ;; c++ style comments in the syntax table
     ;; more info on the syntax flags here:
     ;; http://www.gnu.org/software/emacs/manual/html_node/elisp/Syntax-Flags.html
