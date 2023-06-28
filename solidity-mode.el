@@ -143,6 +143,7 @@ Possible values are:
     "this"
     "throw"
     "try"
+    "unchecked"
     "using"
     "var"
     "view"
